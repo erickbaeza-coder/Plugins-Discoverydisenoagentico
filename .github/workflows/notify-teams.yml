@@ -19,31 +19,14 @@ jobs:
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           CLEAN="${VERSION#v}"
-          DATE=$(date +%Y-%m-%d)
-          BODY=$(cat << 'ENDBODY'
-${{ github.event.release.body }}
-ENDBODY
-          )
-          python3 - << PYEOF
-import json, os
-with open("version.json") as f: d = json.load(f)
-d["version"] = os.environ["CLEAN"]
-d["release_date"] = os.environ["DATE"]
-d["changelog"] = os.environ.get("BODY", "")
-d["download_url"] = "https://github.com/" + os.environ["REPO"] + "/releases/download/" + os.environ["VERSION"] + "/discovery-agentico-" + os.environ["CLEAN"] + ".plugin"
-with open("version.json", "w") as f: json.dump(d, f, indent=2, ensure_ascii=False)
-print("version.json updated to", d["version"])
-PYEOF
+          REPO="${{ github.repository }}"
+          URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
+          jq --arg v "$CLEAN" --arg d "$(date +%Y-%m-%d)" --arg u "$URL" '.version=$v | .release_date=$d | .download_url=$u' version.json > /tmp/vj.json && mv /tmp/vj.json version.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
           git diff --staged --quiet || git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
           git push origin main
-        env:
-          VERSION: ${{ github.event.release.tag_name }}
-          CLEAN: ${{ github.event.release.tag_name }}
-          DATE: ${{ github.event.release.published_at }}
-          REPO: ${{ github.repository }}
 
       - name: Enviar notificacion a Teams
         env:
@@ -51,10 +34,12 @@ PYEOF
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           TITLE="${{ github.event.release.name }}"
-          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          REPO="${{ github.repository }}"
           CLEAN="${VERSION#v}"
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
-          PAYLOAD='{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.4","body":[{"type":"TextBlock","text":"Nueva version disponible","size":"Large","weight":"Bolder","color":"Accent"},{"type":"TextBlock","text":"'${TITLE}'","wrap":true},{"type":"ActionSet","actions":[{"type":"Action.OpenUrl","title":"Descargar plugin","url":"'${DOWNLOAD_URL}'"},{"type":"Action.OpenUrl","title":"Ver en GitHub","url":"'${REPO_URL}'"}]}]}}]}'
+          REPO_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
+          PAYLOAD="{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.4\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"Nueva version disponible: ${VERSION}\",\"size\":\"Large\",\"weight\":\"Bolder\"},{\"type\":\"TextBlock\",\"text\":\"${TITLE}\",\"wrap\":true},{\"type\":\"ActionSet\",\"actions\":[{\"type\":\"Action.OpenUrl\",\"title\":\"Descargar\",\"url\":\"${DOWNLOAD_URL}\"},{\"type\":\"Action.OpenUrl\",\"title\":\"GitHub\",\"url\":\"${REPO_URL}\"}]}]}}]}"
           HTTP=$(curl -s -o /tmp/tr.txt -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL")
-          echo "Status: $HTTP"; cat /tmp/tr.txt
-          [[ "$HTTP" == "200" || "$HTTP" == "202" || "$HTTP" == "204" ]] && echo "OK" || (echo "Error $HTTP"; exit 1)
+          echo "Teams HTTP status: $HTTP"
+          cat /tmp/tr.txt
+          [[ "$HTTP" == "200" || "$HTTP" == "202" || "$HTTP" == "204" ]] && echo "Notificacion enviada OK" || (echo "Error: $HTTP"; exit 1)
