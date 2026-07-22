@@ -1,7 +1,7 @@
 {
-  "version": "2.8.0",
+  "version": "2.8.6-test",
   "release_date": "2026-07-22",
   "changelog": "v2.8 — DS3 mejorado con 3 design directions, JSON v2.1 para Prisma Builder, edge states en wireframes hi-fi.",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/latest/download/discovery-agentico-v2.8.plugin",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.8.6-test/discovery-agentico-2.8.6-test.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }
