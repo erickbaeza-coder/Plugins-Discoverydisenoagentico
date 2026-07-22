@@ -1,4 +1,4 @@
-name: Notificar Teams â Nueva versiÃ³n del plugin
+name: Notificar Teams – Nueva versión del plugin
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   notify:
-    name: Enviar notificaciÃ³n a Teams
+    name: Enviar notificación a Teams
     runs-on: ubuntu-latest
 
     steps:
@@ -25,157 +25,94 @@ jobs:
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${CLEAN_VERSION}.plugin"
 
           python3 << PYEOF
-          import json
+import json
 
-          with open('version.json', 'r') as f:
-              data = json.load(f)
+with open('version.json', 'r') as f:
+    data = json.load(f)
 
-          data['version'] = '${CLEAN_VERSION}'
-          data['release_date'] = '${DATE}'
-          data['changelog'] = """${NOTES}"""
-          data['download_url'] = '${DOWNLOAD_URL}'
+import os
+data['version'] = os.environ.get('CLEAN_VERSION', data['version'])
+data['release_date'] = os.environ.get('DATE', data['release_date'])
+data['changelog'] = os.environ.get('NOTES', '')
+data['download_url'] = os.environ.get('DOWNLOAD_URL', data['download_url'])
 
-          with open('version.json', 'w') as f:
-              json.dump(data, f, indent=2, ensure_ascii=False)
-
-          print(f"version.json actualizado a v${CLEAN_VERSION}")
-          PYEOF
+with open('version.json', 'w') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+print(f"version.json actualizado a {data['version']}")
+PYEOF
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git diff --staged --quiet || git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
-          git push
+          git commit -m "chore: bump version.json to ${VERSION} [skip ci]" || echo "No changes to commit"
+          git push origin main
 
-      - name: Enviar notificaciÃ³n a Teams (Power Automate)
+        env:
+          CLEAN_VERSION: ${{ github.event.release.tag_name }}
+          DATE: ${{ github.event.release.published_at }}
+          NOTES: ${{ github.event.release.body }}
+          DOWNLOAD_URL: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/discovery-agentico-${{ github.event.release.tag_name }}.plugin
+
+      - name: Enviar notificación a Teams (Power Automate)
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           VERSION="${{ github.event.release.tag_name }}"
-          CLEAN_VERSION=$(echo "$VERSION" | sed 's/^v//')
-          RELEASE_URL="${{ github.event.release.html_url }}"
+          TITLE="${{ github.event.release.name }}"
           NOTES="${{ github.event.release.body }}"
-          REPO="${{ github.repository }}"
-          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN_VERSION}.plugin"
+          REPO_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
 
-          # Construir Adaptive Card compatible con Power Automate Workflows
-          PAYLOAD=$(python3 << PYEOF
-          import json
-
-          version = "${CLEAN_VERSION}"
-          release_url = "${RELEASE_URL}"
-          download_url = "${DOWNLOAD_URL}"
-          notes = """${NOTES}""".strip() or "Ver release notes en GitHub."
-          repo = "${REPO}"
-
-          # Truncar notas si son muy largas
-          if len(notes) > 300:
-              notes = notes[:297] + "..."
-
-          payload = {
-              "type": "message",
-              "attachments": [
-                  {
-                      "contentType": "application/vnd.microsoft.card.adaptive",
-                      "contentUrl": None,
-                      "content": {
-                          "\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                          "type": "AdaptiveCard",
-                          "version": "1.4",
-                          "body": [
-                              {
-                                  "type": "Container",
-                                  "style": "emphasis",
-                                  "items": [
-                                      {
-                                          "type": "ColumnSet",
-                                          "columns": [
-                                              {
-                                                  "type": "Column",
-                                                  "width": "auto",
-                                                  "items": [
-                                                      {
-                                                          "type": "TextBlock",
-                                                          "text": "ð",
-                                                          "size": "ExtraLarge"
-                                                      }
-                                                  ]
-                                              },
-                                              {
-                                                  "type": "Column",
-                                                  "width": "stretch",
-                                                  "items": [
-                                                      {
-                                                          "type": "TextBlock",
-                                                          "text": f"discovery-agentico v{version}",
-                                                          "weight": "Bolder",
-                                                          "size": "Large",
-                                                          "wrap": True
-                                                      },
-                                                      {
-                                                          "type": "TextBlock",
-                                                          "text": "Nueva versiÃ³n disponible",
-                                                          "isSubtle": True,
-                                                          "spacing": "None"
-                                                      }
-                                                  ]
-                                              }
-                                          ]
-                                      }
-                                  ]
-                              },
-                              {
-                                  "type": "Container",
-                                  "items": [
-                                      {
-                                          "type": "TextBlock",
-                                          "text": "**Â¿QuÃ© hay de nuevo?**",
-                                          "weight": "Bolder",
-                                          "spacing": "Medium"
-                                      },
-                                      {
-                                          "type": "TextBlock",
-                                          "text": notes,
-                                          "wrap": True,
-                                          "spacing": "Small"
-                                      },
-                                      {
-                                          "type": "TextBlock",
-                                          "text": "**CÃ³mo actualizar:** Descarga el .plugin â Claude Desktop â ConfiguraciÃ³n â Plugins â Instalar",
-                                          "wrap": True,
-                                          "isSubtle": True,
-                                          "spacing": "Medium",
-                                          "size": "Small"
-                                      }
-                                  ]
-                              }
-                          ],
-                          "actions": [
-                              {
-                                  "type": "Action.OpenUrl",
-                                  "title": "ð¥ Descargar plugin",
-                                  "url": release_url,
-                                  "style": "positive"
-                              },
-                              {
-                                  "type": "Action.OpenUrl",
-                                  "title": "ð Ver release notes",
-                                  "url": release_url
-                              }
-                          ],
-                          "msteams": {
-                              "width": "Full"
-                          }
-                      }
-                  }
-              ]
+          PAYLOAD=$(cat <<EOF
+          {
+            "type": "message",
+            "attachments": [
+              {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": {
+                  "type": "AdaptiveCard",
+                  "version": "1.4",
+                  "body": [
+                    {
+                      "type": "TextBlock",
+                      "text": "🚀 Nueva versión del plugin disponible",
+                      "size": "Large",
+                      "weight": "Bolder",
+                      "color": "Accent"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "${TITLE}",
+                      "size": "Medium",
+                      "weight": "Bolder"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "${NOTES}",
+                      "wrap": true
+                    },
+                    {
+                      "type": "ActionSet",
+                      "actions": [
+                        {
+                          "type": "Action.OpenUrl",
+                          "title": "📥 Descargar plugin",
+                          "url": "${DOWNLOAD_URL}"
+                        },
+                        {
+                          "type": "Action.OpenUrl",
+                          "title": "🔗 Ver release en GitHub",
+                          "url": "${REPO_URL}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
           }
-
-          print(json.dumps(payload, ensure_ascii=False))
-          PYEOF
+EOF
           )
-
-          echo "Enviando notificaciÃ³n a Teams..."
 
           HTTP_STATUS=$(curl -s -o /tmp/teams_response.txt -w "%{http_code}" \
             -X POST \
@@ -183,14 +120,12 @@ jobs:
             -d "$PAYLOAD" \
             "$TEAMS_WEBHOOK_URL")
 
-          RESPONSE=$(cat /tmp/teams_response.txt)
-          echo "HTTP Status: $HTTP_STATUS"
-          echo "Response: $RESPONSE"
+          echo "Teams response status: $HTTP_STATUS"
+          cat /tmp/teams_response.txt
 
-          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]; then
-            echo "â NotificaciÃ³n enviada exitosamente a Teams"
+          if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "202" || "$HTTP_STATUS" == "204" ]]; then
+            echo "✅ Notificación enviada correctamente"
           else
-            echo "â Error al enviar notificaciÃ³n (HTTP $HTTP_STATUS)"
-            echo "Respuesta: $RESPONSE"
+            echo "❌ Error al enviar la notificación: HTTP $HTTP_STATUS"
             exit 1
           fi
