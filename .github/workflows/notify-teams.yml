@@ -1,4 +1,4 @@
-name: Notificar Teams – Nueva versión del plugin
+name: Notificar Teams - Nueva version del plugin
 
 on:
   release:
@@ -6,9 +6,8 @@ on:
 
 jobs:
   notify:
-    name: Enviar notificación a Teams
+    name: Enviar notificacion a Teams
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -19,113 +18,43 @@ jobs:
       - name: Actualizar version.json
         run: |
           VERSION="${{ github.event.release.tag_name }}"
-          CLEAN_VERSION=$(echo "$VERSION" | sed 's/^v//')
+          CLEAN="${VERSION#v}"
           DATE=$(date +%Y-%m-%d)
-          NOTES="${{ github.event.release.body }}"
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${CLEAN_VERSION}.plugin"
-
-          python3 << PYEOF
-import json
-
-with open('version.json', 'r') as f:
-    data = json.load(f)
-
-import os
-data['version'] = os.environ.get('CLEAN_VERSION', data['version'])
-data['release_date'] = os.environ.get('DATE', data['release_date'])
-data['changelog'] = os.environ.get('NOTES', '')
-data['download_url'] = os.environ.get('DOWNLOAD_URL', data['download_url'])
-
-with open('version.json', 'w') as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-print(f"version.json actualizado a {data['version']}")
+          BODY=$(cat << 'ENDBODY'
+${{ github.event.release.body }}
+ENDBODY
+          )
+          python3 - << PYEOF
+import json, os
+with open("version.json") as f: d = json.load(f)
+d["version"] = os.environ["CLEAN"]
+d["release_date"] = os.environ["DATE"]
+d["changelog"] = os.environ.get("BODY", "")
+d["download_url"] = "https://github.com/" + os.environ["REPO"] + "/releases/download/" + os.environ["VERSION"] + "/discovery-agentico-" + os.environ["CLEAN"] + ".plugin"
+with open("version.json", "w") as f: json.dump(d, f, indent=2, ensure_ascii=False)
+print("version.json updated to", d["version"])
 PYEOF
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git commit -m "chore: bump version.json to ${VERSION} [skip ci]" || echo "No changes to commit"
+          git diff --staged --quiet || git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
           git push origin main
-
         env:
-          CLEAN_VERSION: ${{ github.event.release.tag_name }}
+          VERSION: ${{ github.event.release.tag_name }}
+          CLEAN: ${{ github.event.release.tag_name }}
           DATE: ${{ github.event.release.published_at }}
-          NOTES: ${{ github.event.release.body }}
-          DOWNLOAD_URL: https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/discovery-agentico-${{ github.event.release.tag_name }}.plugin
+          REPO: ${{ github.repository }}
 
-      - name: Enviar notificación a Teams (Power Automate)
+      - name: Enviar notificacion a Teams
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           TITLE="${{ github.event.release.name }}"
-          NOTES="${{ github.event.release.body }}"
           REPO_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
-
-          PAYLOAD=$(cat <<EOF
-          {
-            "type": "message",
-            "attachments": [
-              {
-                "contentType": "application/vnd.microsoft.card.adaptive",
-                "content": {
-                  "type": "AdaptiveCard",
-                  "version": "1.4",
-                  "body": [
-                    {
-                      "type": "TextBlock",
-                      "text": "🚀 Nueva versión del plugin disponible",
-                      "size": "Large",
-                      "weight": "Bolder",
-                      "color": "Accent"
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": "${TITLE}",
-                      "size": "Medium",
-                      "weight": "Bolder"
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": "${NOTES}",
-                      "wrap": true
-                    },
-                    {
-                      "type": "ActionSet",
-                      "actions": [
-                        {
-                          "type": "Action.OpenUrl",
-                          "title": "📥 Descargar plugin",
-                          "url": "${DOWNLOAD_URL}"
-                        },
-                        {
-                          "type": "Action.OpenUrl",
-                          "title": "🔗 Ver release en GitHub",
-                          "url": "${REPO_URL}"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-EOF
-          )
-
-          HTTP_STATUS=$(curl -s -o /tmp/teams_response.txt -w "%{http_code}" \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" \
-            "$TEAMS_WEBHOOK_URL")
-
-          echo "Teams response status: $HTTP_STATUS"
-          cat /tmp/teams_response.txt
-
-          if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "202" || "$HTTP_STATUS" == "204" ]]; then
-            echo "✅ Notificación enviada correctamente"
-          else
-            echo "❌ Error al enviar la notificación: HTTP $HTTP_STATUS"
-            exit 1
-          fi
+          CLEAN="${VERSION#v}"
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
+          PAYLOAD='{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.4","body":[{"type":"TextBlock","text":"Nueva version disponible","size":"Large","weight":"Bolder","color":"Accent"},{"type":"TextBlock","text":"'${TITLE}'","wrap":true},{"type":"ActionSet","actions":[{"type":"Action.OpenUrl","title":"Descargar plugin","url":"'${DOWNLOAD_URL}'"},{"type":"Action.OpenUrl","title":"Ver en GitHub","url":"'${REPO_URL}'"}]}]}}]}'
+          HTTP=$(curl -s -o /tmp/tr.txt -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL")
+          echo "Status: $HTTP"; cat /tmp/tr.txt
+          [[ "$HTTP" == "200" || "$HTTP" == "202" || "$HTTP" == "204" ]] && echo "OK" || (echo "Error $HTTP"; exit 1)
