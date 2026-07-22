@@ -10,153 +10,186 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Construir mensaje de Teams
-        id: build_message
-        run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          RELEASE_URL="${{ github.event.release.html_url }}"
-          NOTES="${{ github.event.release.body }}"
-          REPO="${{ github.repository }}"
-
-          # Escapar caracteres especiales para JSON
-          NOTES_ESCAPED=$(echo "$NOTES" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" | sed 's/^"//;s/"$//')
-
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
-          echo "repo=$REPO" >> $GITHUB_OUTPUT
-
-      - name: Actualizar version.json en el repo
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Patch version.json con la nueva versión y URL
+      - name: Actualizar version.json
         run: |
           VERSION="${{ github.event.release.tag_name }}"
-          # Remover la "v" del tag si existe (v2.9 → 2.9.0)
           CLEAN_VERSION=$(echo "$VERSION" | sed 's/^v//')
           DATE=$(date +%Y-%m-%d)
           NOTES="${{ github.event.release.body }}"
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/discovery-agentico-${CLEAN_VERSION}.plugin"
 
-          python3 -c "
-          import json, sys
+          python3 << PYEOF
+          import json
 
           with open('version.json', 'r') as f:
               data = json.load(f)
 
           data['version'] = '${CLEAN_VERSION}'
           data['release_date'] = '${DATE}'
-          data['changelog'] = '''${NOTES}'''
+          data['changelog'] = """${NOTES}"""
           data['download_url'] = '${DOWNLOAD_URL}'
 
           with open('version.json', 'w') as f:
               json.dump(data, f, indent=2, ensure_ascii=False)
-          "
+
+          print(f"version.json actualizado a v${CLEAN_VERSION}")
+          PYEOF
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git commit -m "chore: update version.json to ${VERSION} [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
           git push
 
-      - name: Enviar notificación a Microsoft Teams
+      - name: Enviar notificación a Teams (Power Automate)
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           VERSION="${{ github.event.release.tag_name }}"
+          CLEAN_VERSION=$(echo "$VERSION" | sed 's/^v//')
           RELEASE_URL="${{ github.event.release.html_url }}"
           NOTES="${{ github.event.release.body }}"
           REPO="${{ github.repository }}"
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN_VERSION}.plugin"
 
-          # Construir payload de Adaptive Card para Teams
-          PAYLOAD=$(python3 -c "
+          # Construir Adaptive Card compatible con Power Automate Workflows
+          PAYLOAD=$(python3 << PYEOF
           import json
 
-          version = '${VERSION}'
-          release_url = '${RELEASE_URL}'
-          notes = '''${NOTES}'''
-          repo = '${REPO}'
+          version = "${CLEAN_VERSION}"
+          release_url = "${RELEASE_URL}"
+          download_url = "${DOWNLOAD_URL}"
+          notes = """${NOTES}""".strip() or "Ver release notes en GitHub."
+          repo = "${REPO}"
+
+          # Truncar notas si son muy largas
+          if len(notes) > 300:
+              notes = notes[:297] + "..."
 
           payload = {
-            'type': 'message',
-            'attachments': [
-              {
-                'contentType': 'application/vnd.microsoft.card.adaptive',
-                'content': {
-                  '\$schema': 'http://adaptivecards.io/schemas/adaptive-card.json',
-                  'type': 'AdaptiveCard',
-                  'version': '1.4',
-                  'body': [
-                    {
-                      'type': 'TextBlock',
-                      'text': '🚀 Nueva versión del plugin',
-                      'weight': 'Bolder',
-                      'size': 'Medium',
-                      'color': 'Accent'
-                    },
-                    {
-                      'type': 'TextBlock',
-                      'text': f'**discovery-agentico {version}** ya está disponible',
-                      'wrap': True
-                    },
-                    {
-                      'type': 'FactSet',
-                      'facts': [
-                        {'title': 'Versión', 'value': version},
-                        {'title': 'Repo', 'value': repo}
-                      ]
-                    },
-                    {
-                      'type': 'TextBlock',
-                      'text': '**¿Qué hay de nuevo?**',
-                      'weight': 'Bolder',
-                      'spacing': 'Medium'
-                    },
-                    {
-                      'type': 'TextBlock',
-                      'text': notes if notes else 'Ver release notes en GitHub',
-                      'wrap': True,
-                      'color': 'Default'
-                    },
-                    {
-                      'type': 'TextBlock',
-                      'text': '**Cómo actualizar:** Descarga el .plugin → Claude → Configuración → Plugins → Instalar',
-                      'wrap': True,
-                      'spacing': 'Medium',
-                      'isSubtle': True
-                    }
-                  ],
-                  'actions': [
-                    {
-                      'type': 'Action.OpenUrl',
-                      'title': '📥 Descargar plugin',
-                      'url': release_url
-                    },
-                    {
-                      'type': 'Action.OpenUrl',
-                      'title': '📋 Ver release notes',
-                      'url': release_url
-                    }
-                  ]
-                }
-              }
-            ]
+              "type": "message",
+              "attachments": [
+                  {
+                      "contentType": "application/vnd.microsoft.card.adaptive",
+                      "contentUrl": None,
+                      "content": {
+                          "\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                          "type": "AdaptiveCard",
+                          "version": "1.4",
+                          "body": [
+                              {
+                                  "type": "Container",
+                                  "style": "emphasis",
+                                  "items": [
+                                      {
+                                          "type": "ColumnSet",
+                                          "columns": [
+                                              {
+                                                  "type": "Column",
+                                                  "width": "auto",
+                                                  "items": [
+                                                      {
+                                                          "type": "TextBlock",
+                                                          "text": "🚀",
+                                                          "size": "ExtraLarge"
+                                                      }
+                                                  ]
+                                              },
+                                              {
+                                                  "type": "Column",
+                                                  "width": "stretch",
+                                                  "items": [
+                                                      {
+                                                          "type": "TextBlock",
+                                                          "text": f"discovery-agentico v{version}",
+                                                          "weight": "Bolder",
+                                                          "size": "Large",
+                                                          "wrap": True
+                                                      },
+                                                      {
+                                                          "type": "TextBlock",
+                                                          "text": "Nueva versión disponible",
+                                                          "isSubtle": True,
+                                                          "spacing": "None"
+                                                      }
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  ]
+                              },
+                              {
+                                  "type": "Container",
+                                  "items": [
+                                      {
+                                          "type": "TextBlock",
+                                          "text": "**¿Qué hay de nuevo?**",
+                                          "weight": "Bolder",
+                                          "spacing": "Medium"
+                                      },
+                                      {
+                                          "type": "TextBlock",
+                                          "text": notes,
+                                          "wrap": True,
+                                          "spacing": "Small"
+                                      },
+                                      {
+                                          "type": "TextBlock",
+                                          "text": "**Cómo actualizar:** Descarga el .plugin → Claude Desktop → Configuración → Plugins → Instalar",
+                                          "wrap": True,
+                                          "isSubtle": True,
+                                          "spacing": "Medium",
+                                          "size": "Small"
+                                      }
+                                  ]
+                              }
+                          ],
+                          "actions": [
+                              {
+                                  "type": "Action.OpenUrl",
+                                  "title": "📥 Descargar plugin",
+                                  "url": release_url,
+                                  "style": "positive"
+                              },
+                              {
+                                  "type": "Action.OpenUrl",
+                                  "title": "📋 Ver release notes",
+                                  "url": release_url
+                              }
+                          ],
+                          "msteams": {
+                              "width": "Full"
+                          }
+                      }
+                  }
+              ]
           }
 
           print(json.dumps(payload, ensure_ascii=False))
-          ")
+          PYEOF
+          )
 
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          echo "Enviando notificación a Teams..."
+
+          HTTP_STATUS=$(curl -s -o /tmp/teams_response.txt -w "%{http_code}" \
+            -X POST \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
             "$TEAMS_WEBHOOK_URL")
 
-          echo "Teams response: $HTTP_STATUS"
+          RESPONSE=$(cat /tmp/teams_response.txt)
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $RESPONSE"
 
-          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "202" ]; then
-            echo "❌ Error al enviar notificación a Teams (HTTP $HTTP_STATUS)"
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]; then
+            echo "✅ Notificación enviada exitosamente a Teams"
+          else
+            echo "❌ Error al enviar notificación (HTTP $HTTP_STATUS)"
+            echo "Respuesta: $RESPONSE"
             exit 1
           fi
-
-          echo "✅ Notificación enviada a Teams correctamente"
