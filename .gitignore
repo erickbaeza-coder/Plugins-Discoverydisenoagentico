@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Plugin builds (mantener solo la última versión en /releases/)
+*.plugin
+
+# Temporales
+*.tmp
+*.log
+.env
+
+# Node (si se agregan scripts de build)
+node_modules/
