@@ -1,7 +1,7 @@
 {
-  "version": "2.9.0",
+  "version": "2.9.1",
   "release_date": "2026-07-27",
-  "changelog": "v2.9.0 — Bundle prisma_design_system.md en references/ del plugin. Se copia automáticamente al proyecto al iniciar diseño. Fallback en DS1, DS2 y DS3.",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.9.0/discovery-agentico-2.9.0.plugin",
+  "changelog": "v2.9.1 — Fix estructura ZIP del plugin (plugin.json ahora queda en la raíz correcta del ZIP).",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.9.1/discovery-agentico-v2.9.1.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }
