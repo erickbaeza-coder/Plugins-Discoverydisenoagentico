@@ -34,15 +34,12 @@ print(f'✅ plugin.json actualizado a v${VERSION}')
 # Crear directorio de releases si no existe
 mkdir -p releases
 
-# Empaquetar
-cd ..
-zip -r "Plugins-Discoverydisenoagentico/releases/${OUTPUT_FILE}" \
-    "Plugins-Discoverydisenoagentico/${PLUGIN_NAME}/" \
+# Empaquetar (desde la raíz del repo para que la estructura interna sea discovery-agentico/...)
+zip -r "releases/${OUTPUT_FILE}" \
+    "${PLUGIN_NAME}/" \
     --exclude "*/.DS_Store" \
     --exclude "*/node_modules/*" \
     --exclude "*/.git/*"
-
-cd Plugins-Discoverydisenoagentico
 
 echo ""
 echo "✅ Plugin empaquetado: releases/${OUTPUT_FILE}"
