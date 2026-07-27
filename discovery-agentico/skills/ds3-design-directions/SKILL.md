@@ -3,7 +3,7 @@ name: ds3-design-directions
 description: >
   Esta skill debe usarse cuando el designer diga "ejecutar DS3", "DS3", "opciones de diseño",
   "ver las 3 opciones", "design directions", "generar opciones", "opciones del flujo",
-  "paso 3 del diseño", "quiero ver los diseños", "generar JSON para Prisma Builder",
+  "paso 3 del diseño", "quiero ver los diseños", "generar JSON para Prisma Designer",
   "armar las pantallas en Figma", "generar prompts para Figma Make",
   "prompts de Figma Make", "prompt para Figma"
   o cualquier variante que indique querer ejecutar el tercer paso del Diseño agéntico.
@@ -14,7 +14,7 @@ metadata:
 
 Eres un design director ejecutando **DS3 · Design Directions**. Tu trabajo es generar 3 direcciones visuales del flujo completo, renderizarlas en el chat para que el Product Designer elija una, y producir:
 
-1. **Output primario:** HTML interactivo con mockups visuales por pantalla + botones de copia para JSON (Prisma Builder) y Prompt (Figma Make) por cada pantalla.
+1. **Output primario:** HTML interactivo con mockups visuales por pantalla + botones de copia para JSON (Prisma Designer) y Prompt (Figma Make) por cada pantalla.
 2. **Output secundario:** Archivo `output_ds3.md` con JSON completo y prompts como respaldo.
 
 **Principio central:** no produces más wireframes. Produces decisiones visuales con suficiente fidelidad para elegir una dirección — y luego las traduce a datos accionables para Figma.
@@ -27,7 +27,7 @@ Lee `design_state.json`. Verifica que DS1 y DS2 estén `completo`. Extrae ambos 
 
 Si DS1 o DS2 no están completos, informa qué falta y sugiere ejecutarlo primero.
 
-Carga también `prisma_design_system.md` para tener los tokens reales de la marca.
+Carga también `prisma_design_system.md` (carpeta de trabajo). Fallback: `../../references/prisma_design_system.md` si no existe en el proyecto.
 
 ### 2. Identificar flujo principal y pantallas clave
 
@@ -117,16 +117,16 @@ Espera la respuesta del designer antes de continuar.
 Cuando el designer elige (o combina):
 
 **Si elige una dirección pura (A, B o C):**
-Confirma: "Perfecto, voy con Dirección [X] — [nombre]. Generando el JSON para Prisma Builder y los prompts de respaldo..."
+Confirma: "Perfecto, voy con Dirección [X] — [nombre]. Generando el JSON para Prisma Designer y los prompts de respaldo..."
 
 **Si combina o pide ajustes:**
 Describe en una línea la dirección combinada resultante, confirma con el designer, y procede.
 
 Registra la dirección elegida en `design_state.json → direccion_elegida`.
 
-### 7. Generar JSON para Prisma Builder (output primario)
+### 7. Generar JSON para Prisma Designer (output primario)
 
-Para CADA pantalla P1 del inventario de DS1, construye el JSON estructurado que el plugin **Prisma Builder** usará para generar los frames en Figma con componentes reales de Prisma-Components.
+Para CADA pantalla P1 del inventario de DS1, construye el JSON estructurado que el plugin **Prisma Designer** usará para generar los frames en Figma con componentes reales de Prisma-Components.
 
 #### 7.0 Pre-validación obligatoria — ANTES de escribir cada componente
 
@@ -204,7 +204,7 @@ Regla para armar la composición:
 
 **Schema del JSON (packets.ds3) — v2.0:**
 
-> ⚠️ **v2.0 incluye campos de layout** que Prisma Builder v2.0+ interpreta para aplicar padding, gap, sizing y boolean props. Todos los campos nuevos son opcionales — JSONs v1.6 siguen funcionando sin cambios.
+> ⚠️ **v2.0 incluye campos de layout** que Prisma Designer interpreta para aplicar padding, gap, sizing y boolean props. Todos los campos nuevos son opcionales — JSONs v1.6 siguen funcionando sin cambios.
 
 ```json
 {
@@ -285,7 +285,7 @@ Regla para armar la composición:
 
 #### Campos v2.0 — referencia rápida
 
-| Campo | Nivel | Valores | Default | Efecto en Prisma Builder |
+| Campo | Nivel | Valores | Default | Efecto en Prisma Designer |
 |---|---|---|---|---|
 | `layout.direction` | pantalla | `"vertical"` \| `"horizontal"` | `"vertical"` | `frame.layoutMode` |
 | `layout.gap` | pantalla | px (0–64) | `0` | `frame.itemSpacing` |
@@ -305,7 +305,7 @@ Regla para armar la composición:
 - El campo `componente` DEBE incluir TODAS las propiedades del componente en el nombre, no solo algunas.
 - ❌ INCORRECTO: `"Title_section > Title_section · Skeleton=No"` (falta CTA)
 - ✅ CORRECTO: `"Title_section > Title_section · Skeleton=No · CTA=No"`
-- Prisma Builder usa el nombre para buscar la variante exacta en el mapa de Figma. Si falta una prop, no encuentra match.
+- Prisma Designer usa el nombre para buscar la variante exacta en el mapa de Figma. Si falta una prop, no encuentra match.
 - Consultar la **Referencia rápida de componentes válidos** más abajo para ver los nombres exactos con todas las props.
 - Si una prop booleana también está en `booleanProps`, IGUAL debe aparecer en el nombre. `booleanProps` solo sirve para toggling post-import.
 
@@ -519,7 +519,7 @@ DS2 frecuentemente genera pantallas de estado vacío (empty), carga (loading) y 
 El DS2 incluye [N] pantallas de estado especial:
 [lista: P02-Empty · P02-Loading · etc.]
 
-¿Las incluyo en el JSON de Prisma Builder?
+¿Las incluyo en el JSON de Prisma Designer?
 → "Sí, incluir todas"
 → "Solo [nombres]"
 → "No, las agrego manualmente en Figma"
@@ -632,7 +632,7 @@ IMPORTANTE:
 
 ### 9. Generar prompts de respaldo (output secundario)
 
-Para las pantallas más críticas (P1 con MOT crítico o las 3 primeras del flujo), genera prompts para Figma Make como alternativa si el designer no usa Prisma Builder.
+Para las pantallas más críticas (P1 con MOT crítico o las 3 primeras del flujo), genera prompts para Figma Make como alternativa si el designer no usa Prisma Designer.
 
 **Formato del prompt por pantalla:**
 
@@ -669,7 +669,7 @@ ELEMENTOS PROHIBIDOS: [lista del "contenido prohibido" de DS1]
 CRITERIO DE CALIDAD: [criterio de éxito de DS1 para esta pantalla]
 
 NOTA: Los componentes pertenecen a la librería "Prisma-Components".
-Si usás Prisma Builder (plugin Figma), pegá el JSON de packets.ds3 en su lugar.
+Si usás el plugin Prisma Designer, ejecutá la skill `crear-pantallas` con el JSON de packets.ds3.
 ```
 
 ### 10. Generar HTML interactivo (output principal)
@@ -868,7 +868,7 @@ Toast fijo en bottom-center con transición de opacidad. Desaparece después de 
 **a) Escribe `output_ds3.md`** con:
 - Resumen de la dirección elegida
 - **Sección 1:** Tabla de fidelidad por pantalla
-- **Sección 2:** JSON completo de `packets.ds3` (para copiar y pegar en Prisma Builder)
+- **Sección 2:** JSON completo de `packets.ds3` (para usar con el plugin Prisma Designer (`crear-pantallas`))
 - **Sección 3:** Prompts de componentes nuevos para Figma Make (uno por cada `tipo: composicion` en el JSON) — omitir esta sección si no hay composiciones
 - **Sección 4:** Prompts de respaldo para Figma Make (pantallas prioritarias)
 - Instrucciones de uso de cada herramienta
@@ -912,7 +912,7 @@ CÓMO USAR EL OUTPUT:
 👆 Arriba tenés el panel interactivo con cada pantalla.
 Para cada una podés copiar:
 
-🔮 JSON → pegalo en Prisma Builder (plugin Figma) → genera los frames con componentes reales
+🔮 JSON → pegalo en Prisma Designer (plugin Claude, skill `crear-pantallas`) → genera los frames directamente en Figma
 ✏️ Prompt → pegalo en Figma Make → genera la pantalla con IA
 
 El botón verde "Copy full JSON" copia el packets.ds3 completo.

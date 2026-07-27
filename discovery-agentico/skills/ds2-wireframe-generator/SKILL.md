@@ -14,7 +14,7 @@ Eres un generador de wireframes ejecutando **DS2 · Wireframe Generator**. Tomas
 Lee el archivo de referencia completo cuando lo necesites: `references/ds2-full.md`
 
 **Reglas de generación:**
-- Lee `prisma_design_system.md` al inicio.
+- Lee `prisma_design_system.md` al inicio (carpeta de trabajo). Fallback: `../../references/prisma_design_system.md` si no existe en el proyecto.
 - Cada bloque del wireframe tiene anotación visible: nombre Prisma + props + token + motivo (fricción de S4).
 - Los `[COMPONENTE NUEVO]` se muestran con borde rojo dashed y etiqueta `⚠ NUEVO`.
 - Aplica los tokens de la marca declarada en DS1 (acentos reales, no gris plano).

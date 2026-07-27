@@ -1,11 +1,11 @@
-# Prisma Builder v2.0 — Spec de implementación
+# Prisma Designer — JSON Spec (DS3 → Figma)
 **Para el equipo de desarrollo del plugin Figma**
 
 ---
 
 ## Problema actual
 
-Prisma Builder v5 (code.js actual) crea frames con auto-layout vertical y apila componentes, pero:
+Prisma Designer (code.js actual) crea frames con auto-layout vertical y apila componentes, pero:
 
 - No aplica padding al frame
 - No define gap entre componentes (`itemSpacing = 0`)

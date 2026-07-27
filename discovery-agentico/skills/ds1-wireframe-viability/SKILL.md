@@ -17,7 +17,9 @@ No generas imágenes ni dibujas pantallas. Produces estructura, jerarquía y cri
 Lee el archivo de referencia completo cuando lo necesites: `references/ds1-full.md`
 
 **Reglas Prisma:**
-- Lee `prisma_design_system.md` al inicio. Si no existe en la carpeta, detente y solicítalo.
+- Lee `prisma_design_system.md` al inicio.
+- Si no existe en la carpeta de trabajo, búscalo como fallback en `../../references/prisma_design_system.md` (incluido en el plugin).
+- Si tampoco existe ahí, detente y solicítalo al designer.
 - Solo referencia componentes que existan en ese archivo. Los que no existen: `[COMPONENTE NUEVO — requiere desarrollo]`.
 - Usa siempre tokens semánticos (`Text.Neutrals.neutral-body`), nunca hex directos.
 - Usa siempre tokens de spacing reales (`spacing.spacing-4xl = 24px`), nunca valores arbitrarios.
@@ -36,7 +38,7 @@ Lee el archivo de referencia completo cuando lo necesites: `references/ds1-full.
 Lee `design_state.json`. Si no existe, pide al designer que primero diga "iniciar diseño".
 
 Carga en este orden:
-1. `prisma_design_system.md` → si no existe: detener y solicitarlo
+1. `prisma_design_system.md` → si no existe en carpeta de trabajo, leer desde `../../references/prisma_design_system.md`; si tampoco: detener y solicitarlo
 2. PDR indicado en `design_state.json` (archivo .md) → extraer flujos, personas, MOTs, iniciativas Must
 3. `mvp-scope.md` si existe → lista de iniciativas priorizadas
 4. `discovery_state.json` → si existe, extraer packets S3, S4, S5 para mayor contexto
@@ -143,6 +145,6 @@ Di "ejecutar DS2" para generar los wireframes HTML navegables.
 
 ## Reglas
 
-- Sin `prisma_design_system.md`: no ejecutar. Solicitarlo siempre.
+- Sin `prisma_design_system.md` en carpeta de trabajo: buscar en `../../references/prisma_design_system.md` (incluido en el plugin). Solo detener si tampoco existe ahí.
 - Si no hay PDR pero hay `discovery_state.json` con S6 completo: extraer el contexto del packet S6 directamente.
 - El `prompt_brief` de cada pantalla P1 es obligatorio — DS3 lo necesita para generar las opciones visuales.

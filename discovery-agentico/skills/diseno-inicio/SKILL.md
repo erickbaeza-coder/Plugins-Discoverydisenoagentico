@@ -7,7 +7,7 @@ description: >
   o cualquier variante que indique querer comenzar o retomar el proceso de Diseño agéntico DS1–DS3.
   Esta skill es el punto de entrada al proceso de diseño que sigue al Discovery agéntico (S1–S6).
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -29,6 +29,31 @@ DS3 — Design Directions
 ```
 
 ## Al activarse
+
+### Paso 0 — Verificar prisma_design_system.md
+
+Antes de cualquier otra cosa, verifica si `prisma_design_system.md` existe en la carpeta de trabajo del proyecto.
+
+**Si NO existe en la carpeta de trabajo:**
+
+Lee el archivo desde la carpeta del plugin: `../../references/prisma_design_system.md`
+
+Si la lectura es exitosa, cópialo a la carpeta de trabajo escribiendo su contenido en `prisma_design_system.md` e informa:
+
+```
+📋 prisma_design_system.md copiado automáticamente desde el plugin.
+   El archivo está listo en tu carpeta de trabajo.
+```
+
+Si la lectura también falla (archivo no encontrado en el plugin), advierte:
+
+```
+⚠️ No encontré prisma_design_system.md en la carpeta de trabajo ni en el plugin.
+   Por favor añádelo antes de ejecutar DS1.
+   El archivo viene incluido en el kit de distribución del plugin (references/prisma_design_system.md).
+```
+
+**Si SÍ existe en la carpeta de trabajo:** continuar sin avisar.
 
 ### Paso 1 — Verificar estado
 
@@ -117,4 +142,4 @@ Siguiente paso: [skill pendiente]
 
 - Si el designer no tiene un PDR todavía, sugiere primero ejecutar el Discovery agéntico ("Di `iniciar discovery` para comenzar").
 - Si el designer tiene el PDR pero no el `discovery_state.json`, puede pegar el PDR directamente — DS1 puede trabajar con el texto del PDR sin el JSON.
-- Siempre verifica que `prisma_design_system.md` esté disponible en la carpeta antes de ejecutar DS1 o DS2. Si no está, advierte al designer antes de continuar.
+- `prisma_design_system.md` se verifica y copia automáticamente en el Paso 0 — no es necesario pedirlo al designer si el plugin está correctamente instalado.
