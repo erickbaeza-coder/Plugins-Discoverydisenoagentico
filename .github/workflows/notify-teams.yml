@@ -23,7 +23,7 @@ jobs:
           VERSION="${{ github.event.release.tag_name }}"
           CLEAN="${VERSION#v}"
           REPO="${{ github.repository }}"
-          URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
+          URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
           jq --arg v "$CLEAN" --arg d "$(date +%Y-%m-%d)" --arg u "$URL" '.version=$v | .release_date=$d | .download_url=$u' version.json > /tmp/vj.json && mv /tmp/vj.json version.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -40,7 +40,7 @@ jobs:
           REPO="${{ github.repository }}"
           CLEAN="${VERSION#v}"
           REPO_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
-          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${CLEAN}.plugin"
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
           PAYLOAD="{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.4\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"Nueva version disponible: ${VERSION}\",\"size\":\"Large\",\"weight\":\"Bolder\"},{\"type\":\"TextBlock\",\"text\":\"${TITLE}\",\"wrap\":true},{\"type\":\"ActionSet\",\"actions\":[{\"type\":\"Action.OpenUrl\",\"title\":\"Descargar\",\"url\":\"${DOWNLOAD_URL}\"},{\"type\":\"Action.OpenUrl\",\"title\":\"GitHub\",\"url\":\"${REPO_URL}\"}]}]}}]}"
           HTTP=$(curl -s -o /tmp/tr.txt -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$TEAMS_WEBHOOK_URL")
           echo "Teams HTTP status: $HTTP"
