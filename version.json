@@ -1,7 +1,7 @@
 {
-  "version": "2.9.1",
-  "release_date": "2026-07-27",
-  "changelog": "v2.9.1 — Fix estructura ZIP del plugin (plugin.json ahora queda en la raíz correcta del ZIP).",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.9.1/discovery-agentico-v2.9.1.plugin",
+  "version": "2.10.0",
+  "release_date": "2026-08-04",
+  "changelog": "v2.10.0 — S2: anti-alucinación forzado (niveles ✅/⚠️/🚫), verificación de fuentes en Step 0 (Baymard + Mobbin), screenshots con prioridad y justificación.",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.10.0/discovery-agentico-v2.10.0.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }
