@@ -205,6 +205,13 @@ Usar solo fuentes verificadas en STEP 0. Cada hallazgo lleva su nivel de confian
 
 **Mobbin** — solo si MCP ✅ activo. Si 🚫 no disponible, usar fallback: App Store screenshots + Dribbble + case studies en Medium/UX Collective (marcar ⚠️ COBERTURA PARCIAL).
 
+Al usar Mobbin (MCP o búsqueda), aplicar siempre el **protocolo de frescura**:
+- Buscar siempre el flujo más reciente disponible para la app — no el primero que aparezca
+- Anotar la fecha del flow capturado
+- Si la fecha es anterior al año en curso (2026): advertir explícitamente con `⚠️ FLOW DESACTUALIZADO — capturado en [año], pueden existir cambios no mapeados`
+- Si la fecha es desconocida o no visible: marcar `⚠️ FECHA DESCONOCIDA — validar manualmente que el flow sea vigente`
+- No silenciar la falta de fecha — es mejor avisar que asumir que es reciente
+
 Formato de hallazgo con fuente:
 ```
 📌 [Fuente + nivel de confianza] · [Año]
@@ -235,7 +242,7 @@ Para cada app/web del benchmark, busca referencias visuales públicas del flujo 
 
 Fuentes a consultar en orden de prioridad:
 
-1. **Mobbin** — busca con: `site:mobbin.com "[nombre app]"` + `"[feature/flujo]"` via WebSearch
+1. **Mobbin** — MCP si ✅ activo; si no, `site:mobbin.com "[nombre app]" "[feature/flujo]"` via WebSearch
 2. **UX Archive** — busca con: `site:uxarchive.com "[tipo de flujo]"` via WebSearch
 3. **Screenlane** — busca con: `site:screenlane.com "[feature]"` via WebSearch
 4. **App Store / Google Play** — las páginas públicas incluyen screenshots oficiales de la app
@@ -243,9 +250,16 @@ Fuentes a consultar en orden de prioridad:
 
 Para cada resultado encontrado, anota:
 
-| App | Flujo analizado | Fuente | URL | Nota |
-|-----|----------------|--------|-----|------|
-| [nombre] | [flujo específico] | Mobbin / UX Archive / App Store / etc. | [URL] | [caption breve sobre qué muestra] |
+| App | Flujo analizado | Fuente | Fecha flow | URL | Estado |
+|-----|----------------|--------|------------|-----|--------|
+| [nombre] | [flujo específico] | Mobbin / UX Archive / App Store / etc. | [año o "desconocida"] | [URL] | ✅ Vigente / ⚠️ Desactualizado / ⚠️ Fecha desconocida |
+
+**Regla de frescura para toda fuente visual:**
+- Flow del año en curso → ✅ Vigente
+- Flow de año anterior → ⚠️ DESACTUALIZADO — advertir: "capturado en [año], pueden existir cambios no mapeados"
+- Fecha no visible → ⚠️ FECHA DESCONOCIDA — advertir: "validar manualmente que el flow sea vigente"
+
+Siempre buscar el flow más reciente disponible para cada app — no el primero que aparezca en los resultados.
 
 **Reglas de la Fase 5:**
 - Solo incluir URLs que sean públicamente accesibles (sin login requerido)
@@ -363,7 +377,7 @@ Para cada competidor del benchmark (Fase 2), busca referencias visuales pública
 
 Fuentes a consultar en orden de prioridad:
 
-1. **Mobbin** — `site:mobbin.com "[nombre app]"` via WebSearch
+1. **Mobbin** — MCP si ✅ activo; si no, `site:mobbin.com "[nombre app]"` via WebSearch
 2. **UX Archive** — `site:uxarchive.com "[flujo]"` via WebSearch
 3. **Screenlane** — `site:screenlane.com "[feature]"` via WebSearch
 4. **App Store / Google Play** — screenshots oficiales de la página pública del producto
@@ -371,15 +385,16 @@ Fuentes a consultar en orden de prioridad:
 
 Tabla de evidencia:
 
-| Competidor | Flujo/pantalla | Fuente | URL | Nota |
-|------------|---------------|--------|-----|------|
-| [nombre] | [flujo] | Mobbin / UX Archive / App Store / etc. | [URL] | [qué muestra] |
+| Competidor | Flujo/pantalla | Fuente | Fecha flow | URL | Estado |
+|------------|---------------|--------|------------|-----|--------|
+| [nombre] | [flujo] | Mobbin / UX Archive / App Store / etc. | [año o "desconocida"] | [URL] | ✅ Vigente / ⚠️ Desactualizado / ⚠️ Fecha desconocida |
 
 **Reglas:**
 - Solo URLs públicamente accesibles (sin login)
 - Ausencia documentada: `⚠️ Sin evidencia pública — captura manual recomendada`
 - No inventar URLs — omitir si no hay resultado verificable
 - Máximo 3 referencias por competidor
+- **Frescura:** buscar siempre el flow más reciente, no el primero que aparezca. Flow anterior al año en curso → advertir `⚠️ DESACTUALIZADO`. Fecha no visible → advertir `⚠️ FECHA DESCONOCIDA`
 
 Cierra con:
 ```
