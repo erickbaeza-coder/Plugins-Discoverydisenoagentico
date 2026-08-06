@@ -5,7 +5,7 @@ description: >
   "wireframes HTML", "wireframe navegable", "paso 2 del diseño", "generar el wireframe"
   o cualquier variante que indique querer ejecutar el segundo paso del Diseño agéntico.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -81,20 +81,52 @@ Para cada pantalla P1, genera variantes:
 - `P01-error` → `Alerts · Type=Color, State=Error`
 - `P01-success` → `Snackbar · State=Success`
 
-### 5. Ensamblar el HTML final
+### 5. Generar Flowchart de navegación
+
+Antes de ensamblar el HTML, construir el mapa de navegación del flujo completo.
+
+**Datos a extraer del packet DS1:**
+- Todas las pantallas P1 con sus IDs, nombres y flujos
+- Transiciones entre pantallas (de la acción principal de cada una)
+- Fricción por pantalla (de S4: 🟢 baja / 🟡 media / 🔴 alta)
+- Puntos de entrada y salida del flujo
+
+**Representación visual del flowchart:**
+- Nodos = pantallas (rectángulos redondeados con ID + nombre)
+- Color del nodo según fricción: 🟢 verde claro / 🟡 amarillo / 🔴 rojo claro
+- Flechas con etiqueta de la acción que dispara la transición
+- Nodo de inicio (⬤ círculo relleno) y nodo de fin (⬤ círculo doble)
+- Estados especiales (error, vacío) como nodos secundarios con borde dashed
+- Implementar con SVG o con una librería inline (sin dependencias externas)
+
+**Interactividad del flowchart:**
+- Click en nodo → navega automáticamente a esa pantalla en la vista de wireframes
+- Hover en nodo → muestra tooltip con propósito de la pantalla y componentes principales
+- Highlight del nodo activo cuando se navega en la vista wireframes
+
+---
+
+### 6. Ensamblar el HTML final
 
 Estructura del archivo único:
 ```
 wireframe-[proyecto]-[marca]-v1.html
 ├── Header — proyecto, marca, fecha, versión
-├── Nav bar — lista de pantallas + estados · filtros por flujo/persona
-├── Canvas — grid de pantallas o vista individual
-├── Panel de anotaciones — detalle del componente seleccionado
+├── Nav bar — tabs: [Wireframes] [Flowchart] · filtros por flujo/persona
+├── Vista Wireframes
+│   ├── Canvas — grid de pantallas o vista individual
+│   └── Panel de anotaciones — detalle del componente seleccionado
+├── Vista Flowchart
+│   ├── Diagrama SVG navegable del flujo completo
+│   └── Leyenda de fricción y convenciones
 └── Token reference — mapa de tokens de la marca activa
 ```
 
 **Interactividad requerida:**
-- Click en bloque → resalta su anotación
+- Tabs para alternar entre vista Wireframes y vista Flowchart
+- Click en bloque del wireframe → resalta su anotación
+- Click en nodo del flowchart → navega al wireframe correspondiente
+- Click en pantalla del wireframe → resalta el nodo correspondiente en el flowchart
 - Toggle anotaciones ON/OFF
 - Filtro por flujo o por persona
 - Navegación con teclado ← →
@@ -102,7 +134,7 @@ wireframe-[proyecto]-[marca]-v1.html
 
 **Agregar en cada pantalla un botón "📋 Copiar prompt DS3"** que al clickear copia el `prompt_brief` de DS1 para esa pantalla al portapapeles, listo para pegar en DS3 o en cualquier herramienta de IA.
 
-### 6. Verificar calidad
+### 7. Verificar calidad
 
 - [ ] Cada bloque tiene anotación con componente + props + token + motivo.
 - [ ] Componentes nuevos marcados con borde rojo y etiqueta ⚠ NUEVO.
@@ -112,17 +144,30 @@ wireframe-[proyecto]-[marca]-v1.html
 - [ ] Navegación entre pantallas funciona.
 - [ ] Toggle de anotaciones funciona.
 - [ ] Botón "Copiar prompt DS3" presente en cada pantalla.
+- [ ] Flowchart presente con todos los nodos del inventario DS1.
+- [ ] Click en nodo del flowchart navega al wireframe correcto.
+- [ ] Nodos coloreados por fricción (🟢/🟡/🔴).
 
-### 7. Guardar outputs
+### 8. Guardar outputs
 
-**a) Escribe `wireframe-[proyecto]-[marca]-v1.html`** — archivo completo.
+**a) Escribe `wireframe-[proyecto]-[marca]-v1.html`** — archivo completo con wireframes + flowchart.
 
 **b) Actualiza `design_state.json`**:
 - `estado.ds2` → `"completo"`
 - `packets.ds2` → context packet JSON (ver schema en `references/ds2-full.md`)
 - `outputs.ds2` → `"wireframe-[proyecto]-[marca]-v1.html"`
 
-### 8. Confirmar y proponer siguiente paso
+### 9. Export a Miro
+
+Si el MCP de Miro está autorizado, exportar automáticamente:
+
+1. **Flowchart del flujo** vía `diagram_create` (tipo `flowchart`) — nodos con colores de fricción, flechas con etiquetas de acción
+2. **Frame por pantalla P1** vía `doc_create` — nombre de la pantalla como título, descripción con componentes principales y fricción
+3. **Sticky notes de anotaciones** — un sticky por componente nuevo (`[COMPONENTE NUEVO]`) con el nombre y contexto
+
+Si Miro no está conectado: informar al designer y continuar con el HTML como único output.
+
+### 10. Confirmar y proponer siguiente paso
 
 ```
 ✅ DS2 completado — wireframe-[proyecto]-[marca]-v1.html generado
@@ -132,8 +177,12 @@ Resumen:
 - Estados especiales: [N]
 - Componentes nuevos detectados: [N]
 - Decisiones abiertas pendientes: [N]
+- Flowchart: [N] nodos · [N] transiciones
+- Miro: [exportado / no disponible]
 
 Abre el HTML en tu navegador para validar con stakeholders.
+→ Tab "Wireframes": revisa estructura y anotaciones
+→ Tab "Flowchart": valida el flujo de navegación completo
 Usa el botón "Copiar prompt DS3" en cada pantalla para llevar el contenido a DS3.
 
 Siguiente paso: DS3 — Design Directions + Figma Make
