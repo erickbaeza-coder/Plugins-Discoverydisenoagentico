@@ -72,7 +72,8 @@ Antes de empezar necesito algunos datos:
 
 1. ¿Dónde está el PDR? [nombre del archivo, ej. "PDR_Prezunic_v1.0.md" — o "usar discovery_state.json"]
 2. MARCA: [Prisma | Disco | Jumbo | Metro | Prezunic | The Fresh Market]
-3. PLATAFORMA: [app_ios | app_android | web_mobile | web_desktop | todas]
+3. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
+   Opciones: app_ios · app_android · web_mobile · web_desktop · todas
 4. FLUJOS EN SCOPE: [ej. "onboarding + home + flujo de compra" — o "todos los del MVP"]
 ```
 
@@ -83,7 +84,7 @@ Cuando el designer responda, crea `design_state.json`:
   "proyecto": "[extraído del PDR o discovery_state.json]",
   "pdr_source": "[nombre del archivo PDR]",
   "marca": "[marca elegida]",
-  "plataforma": "[plataforma]",
+  "plataformas": ["[plataforma1]"],
   "flujos_en_scope": [],
   "fecha_inicio": "[fecha actual]",
   "estado": {
@@ -109,7 +110,7 @@ Léelo y muestra el panel de estado.
 ### Paso 2 — Mostrar panel de estado
 
 ```
-# Diseño: [proyecto] · [marca] · [plataforma]
+# Diseño: [proyecto] · [marca] · [plataformas separadas por coma]
 
 Estado del proceso:
 ⬜ DS1 — Wireframe Brief & Viabilidad     [pendiente/en progreso/completo]

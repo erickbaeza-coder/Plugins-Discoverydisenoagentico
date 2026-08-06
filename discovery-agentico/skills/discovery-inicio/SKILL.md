@@ -150,7 +150,8 @@ Solo solicita los datos que Jira no completó:
 1. PRODUCTO: ¿En qué app/web existe esta feature?
 2. FEATURE: ¿Cuál es exactamente la que se va a mejorar?
 3. PROBLEMA: ¿Qué está fallando hoy? (métrica o fricción concreta)
-4. PLATAFORMA: [app_ios | app_android | web_mobile | web_desktop]
+4. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
+   Opciones: app_ios · app_android · web_mobile · web_desktop
 ```
 
 **🟡 Funcionalidad nueva:**
@@ -159,7 +160,8 @@ Solo solicita los datos que Jira no completó:
 2. FEATURE: ¿Qué querés construir?
 3. USUARIO TARGET: ¿Para quién es principalmente?
 4. CONTEXTO: ¿Hay un OKR o iniciativa que lo impulse?
-5. PLATAFORMA: [app_ios | app_android | web_mobile | web_desktop | todas]
+5. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, web_mobile")
+   Opciones: app_ios · app_android · web_mobile · web_desktop · todas
 ```
 
 **🔴 Proyecto nuevo:**
@@ -168,7 +170,8 @@ Solo solicita los datos que Jira no completó:
 2. TIPO: ¿Qué tipo de app/web es?
 3. MERCADO: ¿Para qué país o región?
 4. VISIÓN: En 1 frase, ¿qué problema resuelve?
-5. PLATAFORMA: [app_ios | app_android | web | todas]
+5. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una)
+   Opciones: app_ios · app_android · web_mobile · web_desktop · todas
 ```
 
 Cuando el designer responda, crea `discovery_state.json`:
@@ -186,7 +189,7 @@ Cuando el designer responda, crea `discovery_state.json`:
     "epic": "[epic o null]",
     "acceptance_criteria": "[criterios o null]"
   },
-  "plataforma": "[plataforma]",
+  "plataformas": ["[plataforma1]"],
   "mercado": "[país/región o null]",
   "fecha_inicio": "[fecha actual]",
   "estado": {
