@@ -1,7 +1,7 @@
 {
-  "version": "2.10.0",
-  "release_date": "2026-08-04",
+  "version": "2.10.1",
+  "release_date": "2026-08-06",
   "changelog": "v2.10.0 — S2: anti-alucinación forzado (niveles ✅/⚠️/🚫), verificación de fuentes en Step 0 (Baymard + Mobbin), screenshots con prioridad y justificación.",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.10.0/discovery-agentico-v2.10.0.plugin",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.10.1/discovery-agentico-v2.10.1.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }
