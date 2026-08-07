@@ -5,7 +5,7 @@ description: >
   "wireframes HTML", "wireframe navegable", "paso 2 del diseño", "generar el wireframe"
   o cualquier variante que indique querer ejecutar el segundo paso del Diseño agéntico.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -91,18 +91,48 @@ Antes de ensamblar el HTML, construir el mapa de navegación del flujo completo.
 - Fricción por pantalla (de S4: 🟢 baja / 🟡 media / 🔴 alta)
 - Puntos de entrada y salida del flujo
 
-**Representación visual del flowchart:**
-- Nodos = pantallas (rectángulos redondeados con ID + nombre)
-- Color del nodo según fricción: 🟢 verde claro / 🟡 amarillo / 🔴 rojo claro
+**Representación visual del flowchart — nodos con mini-wireframe:**
+
+Cada nodo NO es solo un rectángulo con texto. Es una tarjeta que muestra una miniatura real del wireframe de esa pantalla:
+
+```
+┌─────────────────────┐
+│  P01 · 🟢           │  ← ID + fricción (esquina sup)
+│ ┌─────────────────┐ │
+│ │ [mini-wireframe]│ │  ← Preview escalado de la pantalla (CSS transform)
+│ │  navbar         │ │     escala ~0.28 · overflow hidden · pointer-events none
+│ │  hero-card      │ │
+│ │  CTA button     │ │
+│ └─────────────────┘ │
+│  Fuel Perks Hub     │  ← nombre debajo del preview
+└─────────────────────┘
+```
+
+**Implementación técnica del mini-wireframe:**
+- Cada nodo del flowchart es un `<foreignObject>` en el SVG con dimensiones del nodo (ej. 160×220px)
+- Dentro del `<foreignObject>`, clonar el contenido HTML de `.phone-content` de esa pantalla usando `innerHTML`
+- Aplicar `transform: scale(0.27); transform-origin: top left` al contenedor clonado + `overflow: hidden` al wrapper
+- `pointer-events: none` en el contenido del preview — el click actúa sobre el nodo contenedor, no el contenido
+- El color del borde del nodo indica fricción: 🟢 verde / 🟡 amarillo / 🔴 rojo
+
+**Tamaño de nodos con mini-wireframe:**
+- Mobile: nodo 160×220px (preview interno ~65×95px a scale 0.27 sobre frame 390px)
+- Web: nodo 200×140px (preview proporcional)
+- Estados especiales (error/vacío): nodo con borde dashed, preview a 70% de opacidad
+
+**Nodo de inicio y fin:**
+- START: círculo relleno con color primario de marca
+- END: círculo doble (stroke + relleno al 20%)
+
+**Flechas:**
 - Flechas con etiqueta de la acción que dispara la transición
-- Nodo de inicio (⬤ círculo relleno) y nodo de fin (⬤ círculo doble)
-- Estados especiales (error, vacío) como nodos secundarios con borde dashed
-- Implementar con SVG o con una librería inline (sin dependencias externas)
+- Flechas de error: dashed rojo
+- Flechas principales: sólidas en gris neutro
 
 **Interactividad del flowchart:**
-- Click en nodo → navega automáticamente a esa pantalla en la vista de wireframes
-- Hover en nodo → muestra tooltip con propósito de la pantalla y componentes principales
-- Highlight del nodo activo cuando se navega en la vista wireframes
+- Click en nodo → navega automáticamente a esa pantalla en la vista de wireframes (switchTab + showScreen)
+- Hover en nodo → borde se intensifica + cursor pointer
+- Highlight del nodo activo cuando se navega en la vista wireframes (sincronización bidireccional)
 
 ---
 
@@ -117,8 +147,9 @@ wireframe-[proyecto]-[marca]-v1.html
 │   ├── Canvas — grid de pantallas o vista individual
 │   └── Panel de anotaciones — detalle del componente seleccionado
 ├── Vista Flowchart
-│   ├── Diagrama SVG navegable del flujo completo
-│   └── Leyenda de fricción y convenciones
+│   ├── Toolbar: Leyenda de fricción · botón "Exportar a Miro" (siempre visible)
+│   ├── Diagrama SVG navegable — nodos con mini-wireframe + flechas etiquetadas
+│   └── Estado de conexión Miro (badge inline en el botón)
 └── Token reference — mapa de tokens de la marca activa
 ```
 
@@ -145,8 +176,11 @@ wireframe-[proyecto]-[marca]-v1.html
 - [ ] Toggle de anotaciones funciona.
 - [ ] Botón "Copiar prompt DS3" presente en cada pantalla.
 - [ ] Flowchart presente con todos los nodos del inventario DS1.
+- [ ] Cada nodo del flowchart muestra mini-wireframe (no solo texto).
 - [ ] Click en nodo del flowchart navega al wireframe correcto.
 - [ ] Nodos coloreados por fricción (🟢/🟡/🔴).
+- [ ] Botón "Exportar a Miro" visible en toolbar del flowchart (siempre, independiente de conexión).
+- [ ] Si Miro no está conectado: botón muestra instrucciones en lugar de ejecutar silenciosamente.
 
 ### 8. Guardar outputs
 
@@ -159,13 +193,33 @@ wireframe-[proyecto]-[marca]-v1.html
 
 ### 9. Export a Miro
 
-Si el MCP de Miro está autorizado, exportar automáticamente:
+**El botón "🗂 Exportar a Miro" siempre aparece en la toolbar del tab Flowchart.** El estado de conexión determina el comportamiento, no la visibilidad del botón.
 
-1. **Flowchart del flujo** vía `diagram_create` (tipo `flowchart`) — nodos con colores de fricción, flechas con etiquetas de acción
+**Lógica del botón:**
+
+```
+Al hacer click en "Exportar a Miro":
+  SI Miro MCP está conectado:
+    → ejecutar export (pasos 1-3 abajo)
+    → mostrar "✅ Exportado a Miro — [enlace al board]"
+  SI Miro NO está conectado:
+    → mostrar panel de instrucciones inline:
+      "Para exportar a Miro necesitás conectar el plugin:
+       1. Abre Claude → Configuración → Plugins
+       2. Instala el plugin de Miro
+       3. Volvé a esta pestaña y hacé click en Exportar"
+    → NO silencio, NO exportar sin feedback
+```
+
+**Contenido del export (cuando Miro está disponible):**
+
+1. **Flowchart del flujo** vía `diagram_create` (tipo `flowchart`) — nodos con colores de fricción, flechas con etiquetas de acción, mismo layout que el SVG del HTML
 2. **Frame por pantalla P1** vía `doc_create` — nombre de la pantalla como título, descripción con componentes principales y fricción
 3. **Sticky notes de anotaciones** — un sticky por componente nuevo (`[COMPONENTE NUEVO]`) con el nombre y contexto
 
-Si Miro no está conectado: informar al designer y continuar con el HTML como único output.
+**Badge de estado en el botón:**
+- Miro conectado: `🗂 Exportar a Miro` (botón habilitado, color primario)
+- Miro no conectado: `🗂 Exportar a Miro ·  Conectar plugin` (botón con badge gris)
 
 ### 10. Confirmar y proponer siguiente paso
 
