@@ -1,6 +1,6 @@
 {
   "name": "discovery-agentico",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "description": "Proceso de UX Discovery + Diseño agéntico para Product Designers. Discovery (S1–S6): genera el PDR completo. Diseño (DS1–DS3): convierte el PDR en wireframes y design directions con HTML interactivo hi-fi (placeholders honestos, badges de fidelidad, acordeón de componentes, edge states) + JSON v2.1 para Prisma Designer.",
   "author": {
     "name": "Whitelabel UX Team"

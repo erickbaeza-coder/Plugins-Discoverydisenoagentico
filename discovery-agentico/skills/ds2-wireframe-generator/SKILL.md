@@ -5,7 +5,7 @@ description: >
   "wireframes HTML", "wireframe navegable", "paso 2 del diseño", "generar el wireframe"
   o cualquier variante que indique querer ejecutar el segundo paso del Diseño agéntico.
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -91,48 +91,57 @@ Antes de ensamblar el HTML, construir el mapa de navegación del flujo completo.
 - Fricción por pantalla (de S4: 🟢 baja / 🟡 media / 🔴 alta)
 - Puntos de entrada y salida del flujo
 
-**Representación visual del flowchart — nodos con mini-wireframe:**
+**Representación visual del flowchart — nodos con mini-wireframe + flechas de navegación:**
 
-Cada nodo NO es solo un rectángulo con texto. Es una tarjeta que muestra una miniatura real del wireframe de esa pantalla:
+El flowchart es un **diagrama de flujo real**, no una galería de cards. Cada nodo muestra una miniatura del wireframe Y hay flechas con labels que conectan los nodos.
 
 ```
-┌─────────────────────┐
-│  P01 · 🟢           │  ← ID + fricción (esquina sup)
-│ ┌─────────────────┐ │
-│ │ [mini-wireframe]│ │  ← Preview escalado de la pantalla (CSS transform)
-│ │  navbar         │ │     escala ~0.28 · overflow hidden · pointer-events none
-│ │  hero-card      │ │
-│ │  CTA button     │ │
-│ └─────────────────┘ │
-│  Fuel Perks Hub     │  ← nombre debajo del preview
-└─────────────────────┘
+  ●START
+    │
+    ▼
+┌───────────┐   Get started   ┌───────────┐   Link card   ┌───────────┐
+│ P01 🟢    │ ──────────────► │ P02 🟡    │ ────────────► │ P03 🔴    │
+│ [preview] │                 │ [preview] │               │ [preview] │
+│ Fuel Perks│                 │ Value     │               │ Card link │
+└───────────┘                 └───────────┘               └─────┬──┬──┘
+                                                          error │  │ linked ✓
+                                                          ┌─────▼  ▼─────┐
+                                                          │ P03↯  P04 🟢 │
+                                                          └──────────────┘
 ```
 
-**Implementación técnica del mini-wireframe:**
-- Cada nodo del flowchart es un `<foreignObject>` en el SVG con dimensiones del nodo (ej. 160×220px)
-- Dentro del `<foreignObject>`, clonar el contenido HTML de `.phone-content` de esa pantalla usando `innerHTML`
-- Aplicar `transform: scale(0.27); transform-origin: top left` al contenedor clonado + `overflow: hidden` al wrapper
-- `pointer-events: none` en el contenido del preview — el click actúa sobre el nodo contenedor, no el contenido
-- El color del borde del nodo indica fricción: 🟢 verde / 🟡 amarillo / 🔴 rojo
+**Layout del flowchart:**
+- **Orientación**: top-to-bottom, con columnas por flujo (Onboarding | Discover | Balance | Redención)
+- **Orden**: las pantallas de cada flujo se apilan verticalmente en su columna
+- **Flechas**: `<path>` SVG con `marker-end="url(#arrow)"` conectando nodos entre columnas y dentro de columnas
+- **Labels de flecha**: `<text>` posicionado en el punto medio de la flecha con la acción que dispara la transición
+- **Flechas de error**: dashed rojo (`stroke-dasharray="4,3"`)
+- **Flechas principales**: sólidas gris neutro
+- **No hay nodos sin conectar**: cada pantalla tiene al menos una flecha entrante y una saliente (excepto START y END)
 
-**Tamaño de nodos con mini-wireframe:**
-- Mobile: nodo 160×220px (preview interno ~65×95px a scale 0.27 sobre frame 390px)
-- Web: nodo 200×140px (preview proporcional)
-- Estados especiales (error/vacío): nodo con borde dashed, preview a 70% de opacidad
+**Nodos — mini-wireframe:**
+- Cada nodo usa `<foreignObject>` para embeber un clone escalado del wireframe real
+- Tamaño del nodo: 150×200px (mobile) · scale del preview: ~0.27 · overflow hidden
+- `pointer-events: none` en el preview; el click actúa sobre el rect del nodo
+- Borde del nodo = color de fricción: 🟢 verde / 🟡 amarillo / 🔴 rojo (2px solid)
+- ID + badge de fricción en esquina superior derecha del nodo
+- Nombre de pantalla centrado debajo del preview (fuera del foreignObject)
+- Estados especiales: borde dashed + preview a 60% de opacidad
 
-**Nodo de inicio y fin:**
-- START: círculo relleno con color primario de marca
-- END: círculo doble (stroke + relleno al 20%)
+**Nodo START y END:**
+- START: círculo relleno con color primario de marca, texto "START"
+- END: círculo doble stroke, texto "END"
 
-**Flechas:**
-- Flechas con etiqueta de la acción que dispara la transición
-- Flechas de error: dashed rojo
-- Flechas principales: sólidas en gris neutro
+**Canvas del flowchart:**
+- El SVG es scrollable y zoomable (rueda del mouse para zoom, drag para pan)
+- Ancho mínimo: 4 columnas × 200px + gaps; alto: según cantidad de pantallas por columna
+- Background: `#FAFAFA` con grid punteado sutil para dar sensación de canvas de diseño
 
-**Interactividad del flowchart:**
-- Click en nodo → navega automáticamente a esa pantalla en la vista de wireframes (switchTab + showScreen)
-- Hover en nodo → borde se intensifica + cursor pointer
-- Highlight del nodo activo cuando se navega en la vista wireframes (sincronización bidireccional)
+**Interactividad:**
+- Click en nodo → `switchTab('wireframes')` + `showScreen(id)` (navega al wireframe completo)
+- Click en pantalla del wireframe → `switchTab('flowchart')` + highlight del nodo correspondiente
+- Hover en nodo → borde se intensifica + sombra + cursor pointer
+- Hover en flecha → label se resalta
 
 ---
 
@@ -147,9 +156,8 @@ wireframe-[proyecto]-[marca]-v1.html
 │   ├── Canvas — grid de pantallas o vista individual
 │   └── Panel de anotaciones — detalle del componente seleccionado
 ├── Vista Flowchart
-│   ├── Toolbar: Leyenda de fricción · botón "Exportar a Miro" (siempre visible)
-│   ├── Diagrama SVG navegable — nodos con mini-wireframe + flechas etiquetadas
-│   └── Estado de conexión Miro (badge inline en el botón)
+│   ├── Toolbar: Leyenda de fricción
+│   └── Diagrama SVG con scroll/zoom — nodos con mini-wireframe + flechas etiquetadas
 └── Token reference — mapa de tokens de la marca activa
 ```
 
@@ -179,8 +187,9 @@ wireframe-[proyecto]-[marca]-v1.html
 - [ ] Cada nodo del flowchart muestra mini-wireframe (no solo texto).
 - [ ] Click en nodo del flowchart navega al wireframe correcto.
 - [ ] Nodos coloreados por fricción (🟢/🟡/🔴).
-- [ ] Botón "Exportar a Miro" visible en toolbar del flowchart (siempre, independiente de conexión).
-- [ ] Si Miro no está conectado: botón muestra instrucciones en lugar de ejecutar silenciosamente.
+- [ ] Las flechas de navegación entre nodos están presentes con labels de acción.
+- [ ] No hay nodos sin conectar (excepto START y END).
+- [ ] El canvas del flowchart tiene scroll/zoom.
 
 ### 8. Guardar outputs
 
@@ -191,35 +200,30 @@ wireframe-[proyecto]-[marca]-v1.html
 - `packets.ds2` → context packet JSON (ver schema en `references/ds2-full.md`)
 - `outputs.ds2` → `"wireframe-[proyecto]-[marca]-v1.html"`
 
-### 9. Export a Miro
+### 9. Ofrecer export a Miro desde el chat
 
-**El botón "🗂 Exportar a Miro" siempre aparece en la toolbar del tab Flowchart.** El estado de conexión determina el comportamiento, no la visibilidad del botón.
+El export a Miro **no se hace desde el HTML**. Claude lo ejecuta directamente desde el chat usando el MCP de Miro.
 
-**Lógica del botón:**
+Después de guardar el HTML (paso 8), preguntar siempre en el chat:
 
 ```
-Al hacer click en "Exportar a Miro":
-  SI Miro MCP está conectado:
-    → ejecutar export (pasos 1-3 abajo)
-    → mostrar "✅ Exportado a Miro — [enlace al board]"
-  SI Miro NO está conectado:
-    → mostrar panel de instrucciones inline:
-      "Para exportar a Miro necesitás conectar el plugin:
-       1. Abre Claude → Configuración → Plugins
-       2. Instala el plugin de Miro
-       3. Volvé a esta pestaña y hacé click en Exportar"
-    → NO silencio, NO exportar sin feedback
+🗂 ¿Exportar a Miro?
+Tengo el MCP de Miro disponible. Puedo crear:
+  · Un flowchart con los [N] nodos y sus transiciones
+  · Un frame por pantalla P1 con componentes y fricción
+  · Stickies por cada componente nuevo detectado
+
+Di "exportar a Miro" para ejecutar, o "no" para continuar sin exportar.
 ```
 
-**Contenido del export (cuando Miro está disponible):**
+**Si el designer dice "exportar a Miro":**
 
-1. **Flowchart del flujo** vía `diagram_create` (tipo `flowchart`) — nodos con colores de fricción, flechas con etiquetas de acción, mismo layout que el SVG del HTML
-2. **Frame por pantalla P1** vía `doc_create` — nombre de la pantalla como título, descripción con componentes principales y fricción
-3. **Sticky notes de anotaciones** — un sticky por componente nuevo (`[COMPONENTE NUEVO]`) con el nombre y contexto
+1. **Flowchart** vía `diagram_create_mermaid` — generar Mermaid del flujo completo con nodos etiquetados por fricción
+2. **Frame por pantalla P1** vía `doc_create` — título = nombre de pantalla, cuerpo = componentes principales + fricción + criterio de éxito de DS1
+3. **Stickies** vía `doc_create` — uno por `[COMPONENTE NUEVO]` con nombre y contexto del wireframe
 
-**Badge de estado en el botón:**
-- Miro conectado: `🗂 Exportar a Miro` (botón habilitado, color primario)
-- Miro no conectado: `🗂 Exportar a Miro ·  Conectar plugin` (botón con badge gris)
+**Si el MCP de Miro no está conectado:**
+No preguntar. Omitir este paso en silencio. El designer verá la opción de conectar Miro en la pantalla de plugins de Claude si lo necesita.
 
 ### 10. Confirmar y proponer siguiente paso
 
