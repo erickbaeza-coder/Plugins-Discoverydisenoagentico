@@ -1,6 +1,6 @@
 {
   "version": "2.13.0",
-  "release_date": "2026-08-07",
+  "release_date": "2026-08-10",
   "changelog": "v2.13.0 — DS2: flowchart con flechas de navegación reales entre nodos (layout por columnas de flujo, labels de acción, scroll/zoom en canvas) + export a Miro movido al chat de Claude (más confiable que desde HTML).",
   "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.13.0/discovery-agentico-v2.13.0.plugin",
   "min_claude_version": "claude-sonnet-4-6"
