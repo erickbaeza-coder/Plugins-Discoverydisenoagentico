@@ -1,7 +1,7 @@
 {
-  "version": "2.13.0",
-  "release_date": "2026-08-10",
-  "changelog": "v2.13.0 — DS2: flowchart con flechas de navegación reales entre nodos (layout por columnas de flujo, labels de acción, scroll/zoom en canvas) + export a Miro movido al chat de Claude (más confiable que desde HTML).",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.13.0/discovery-agentico-v2.13.0.plugin",
+  "version": "2.14.0",
+  "release_date": "2026-08-12",
+  "changelog": "v2.14.0 — S2: nueva Fase 1d con análisis de reseñas de App Store y Google Play (pain points reales de usuarios de apps competidoras). Pregunta al designer si usar Chrome MCP, WebSearch o saltar la fase.",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.14.0/discovery-agentico-v2.14.0.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }

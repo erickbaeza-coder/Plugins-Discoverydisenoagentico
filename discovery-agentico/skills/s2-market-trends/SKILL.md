@@ -5,7 +5,7 @@ description: >
   "benchmark competitivo", "tendencias", "iniciar S2", "paso 2 del discovery", "análisis de competidores"
   o cualquier variante que indique querer ejecutar el segundo paso del Discovery agéntico.
 metadata:
-  version: "3.1.0"
+  version: "3.2.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -162,6 +162,76 @@ El designer sube las capturas en el chat. El agente las analiza visualmente:
 
 ---
 
+**Fase 1d — Reseñas de App Store y Google Play**
+
+Las reseñas públicas de los competidores son una fuente directa de pain points reales de usuarios. Los reviews de 1-2 estrellas = oportunidades de diseño concretas.
+
+**Antes de ejecutar, preguntar al designer:**
+
+```
+📱 ¿Querés que analice las reseñas de los competidores en App Store y Google Play?
+
+Las páginas públicas muestran rating, distribución de estrellas y top reviews.
+Para mejores resultados necesito Chrome MCP activo (las tiendas usan JavaScript).
+
+[Opción A] ✅ Sí, usar Chrome MCP — extraigo reviews reales directamente de las tiendas
+[Opción B] 🔍 Sí, usar WebSearch — menos detalle, pero funciona sin Chrome
+[Opción C] ⏭ No por ahora — continuar sin reviews
+
+¿Cuál preferís?
+```
+
+**Si el designer elige Opción A (Chrome MCP):**
+
+Verificar que Chrome MCP esté activo. Si no lo está, informar y ofrecer Opción B como fallback:
+```
+⚠️ Chrome MCP no está conectado en esta sesión.
+¿Querés continuar con WebSearch (Opción B) o saltar esta fase?
+```
+
+Para cada app del benchmark que tenga versión móvil, navegar con Chrome MCP:
+- App Store: `https://apps.apple.com/us/app/[app-name]/id[app-id]`
+- Google Play: `https://play.google.com/store/apps/details?id=[package-id]`
+
+**Si el designer elige Opción B (WebSearch):**
+
+Buscar: `"[nombre app]" site:apps.apple.com` y `"[nombre app]" site:play.google.com` para obtener el rating y resumen visible en los resultados de búsqueda. Complementar con búsquedas de reviews en blogs/medios especializados.
+
+**Datos a extraer (A o B):**
+
+Por cada app analizada:
+
+| App | Plataforma | Rating | N° reviews | Pain points (1-2★) | Destacados (4-5★) | Confianza |
+|-----|------------|--------|------------|-------------------|-------------------|-----------|
+| [nombre] | iOS/Android | [X.X/5] | [N] | [temas frecuentes] | [temas frecuentes] | ✅/⚠️/🚫 |
+
+**Análisis por app** (para las 3–4 apps más relevantes del benchmark):
+
+```
+📱 [Nombre app] — [Rating]/5 · [N] reviews · [Plataforma]
+Fuente: [URL] · Fecha acceso: [fecha] · [✅ VERIFICADO / ⚠️ ESTIMADO]
+
+Pain points frecuentes (reviews negativos):
+→ [tema 1]: "[cita representativa de un review real]"
+→ [tema 2]: "[cita representativa]"
+→ [tema 3]: "[cita representativa]"
+
+Qué valoran (reviews positivos):
+→ [tema 1]: "[cita representativa]"
+→ [tema 2]: "[cita representativa]"
+
+Implicancia para [feature en scope]:
+[qué decisión de diseño surge de estos reviews · conectar con HMW de S1 si aplica]
+```
+
+**Reglas de la Fase 1d:**
+- Solo citar reviews reales encontrados — no inventar citas
+- Si los reviews no son accesibles o la app no tiene suficientes reseñas públicas: marcar 🚫 y documentar
+- Priorizar reviews recientes (últimos 12 meses) sobre ratings históricos
+- Si hay diferencia significativa entre rating iOS y Android, documentarla — puede indicar problemas de paridad de features
+
+---
+
 **Fase 1c — Consultar base de conocimiento NNGroup**
 
 El agente consulta el archivo `references/nngroup_ecommerce_ux_knowledge_base.md` (NNGroup Ecommerce UX, 4th Ed., 500+ guidelines). Busca por tags relevantes al proyecto y extrae guidelines aplicables. Luego busca en `site:nngroup.com` vía WebSearch para encontrar actualizaciones más recientes. Si hay conflicto entre base local y web, prioriza el más reciente.
@@ -287,6 +357,8 @@ Apps sin evidencia pública: [lista] — se recomienda captura manual
 - [ ] Cada gap conecta con un HMW de S1.
 - [ ] Datos no verificados marcados con `[NO VERIFICADO]`.
 - [ ] Evidencia visual: tabla con URLs verificadas o ausencia documentada.
+- [ ] Se preguntó al designer sobre análisis de reseñas (Fase 1d) y se ejecutó o documentó la decisión.
+- [ ] Reviews de App Store/Google Play: citas reales, no inventadas — fuente verificada o marcada 🚫.
 
 ### 5. Guardar outputs
 
