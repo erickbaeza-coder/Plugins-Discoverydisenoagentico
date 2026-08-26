@@ -6,7 +6,7 @@ description: >
   "iniciar el diseño", "paso 1 del diseño"
   o cualquier variante que indique querer ejecutar el primer paso del Diseño agéntico.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -16,7 +16,15 @@ No generas imágenes ni dibujas pantallas. Produces estructura, jerarquía y cri
 
 Lee el archivo de referencia completo cuando lo necesites: `references/ds1-full.md`
 
-**Reglas Prisma:**
+**Reglas de diseño — Principios Prisma (aplicar siempre):**
+
+Antes de diseñar elementos, diseñar la estructura. Antes de inventar valores, buscar el token. Antes de crear un componente, buscar uno existente. Antes de finalizar, validar.
+
+Orden de selección de componentes: componente existente → variante existente → property existente → slot existente → composición → nuevo componente (solo si gap real). Si no existe solución: declarar `[COMPONENT GAP]` con necesidad + alternativas evaluadas + tokens requeridos. Nunca crear silenciosamente una solución independiente.
+
+Principios innegociables: contenido antes que decoración · jerarquía antes que estilo · estructura antes que componentes · tokens antes que valores hardcoded · accesibilidad desde el inicio (contraste, targets táctiles, no depender solo del color).
+
+**Reglas — Plataforma APP (cuando `tipo_interfaz == "app"`):**
 - Lee `prisma_design_system.md` al inicio.
 - Si no existe en la carpeta de trabajo, búscalo como fallback en `../../references/prisma_design_system.md` (incluido en el plugin).
 - Si tampoco existe ahí, detente y solicítalo al designer.
@@ -30,6 +38,26 @@ Lee el archivo de referencia completo cuando lo necesites: `references/ds1-full.
   Ejemplo: `Atoms > Buttons · Size=Lg · State=Default · Type=Button`
   Ejemplo: `Cards > Product Card · Size=Md · State=Default · Type=PLP`
 - Para pantallas comunes (Home, PLP, Carrito, etc.), consultar la **Guía rápida por tipo de pantalla** en sección 10 de `prisma_design_system.md` como punto de partida.
+- Respetar Safe Areas iOS · considerar Dynamic Island/notch · mantener targets táctiles ≥ 44pt.
+
+**Reglas — Plataforma WEB (cuando `tipo_interfaz == "web"`):**
+- Librería de componentes: **`Web-Radix-Comopnents`** (Figma fileKey: `V4JC6ZQiNFEechja7p3W3A`)
+  Componentes disponibles: Button · Icon Button · Text Field · Text Area · Radio · Radio Group · Checkbox Group · Segmented Control · Dropdown Menu · Popover · Alert Dialog · Slot
+  Marcar los no disponibles con `[WIP]`.
+- Tokens: **`Radix Tokens Foundation`** (Figma fileKey: `NI2j6WrkADt9MgQEbXJaC9`)
+  Spacing: `Spacing/1` (mínimo) → `Spacing/9` (máximo)
+  Tipografía: `Typography/1` → `Typography/9` · variantes `Bold` / `Light`
+  Letter spacing: `Typography/Letter spacing/1–9`
+  Botones: `Button/Primary/color-bt-bg-default` · `color-bt-bg-hover` · `color-bt-bg-pressed` · `color-bt-text-default` · `color-bt-icon-default`
+- **Formato obligatorio de componentes web:**
+  `[Nombre] · [prop=valor]  ← Web-Radix-Comopnents`
+  Ejemplo: `Button · variant=primary · size=md`
+  Ejemplo: `Text Field · state=default · placeholder=true`
+- Breakpoints estándar: `1440px` (desktop full) · `1280px` (desktop small) · `768px` (tablet/mobile)
+- Grid: 12 columnas · gutter 24px · margin exterior 80px (desktop) / 24px (mobile)
+- Navegación: top nav en desktop · menú hamburguesa en mobile (no bottom nav)
+- Nunca inventar valores de spacing — usar siempre `Spacing/N`
+- Si un patrón de pantalla no está cubierto (ej. sidebar, data table), declarar `[PATTERN GAP]` con descripción y tokens Radix propuestos.
 
 ## Al activarse
 
@@ -45,16 +73,19 @@ Carga en este orden:
 
 ### 2. Solicitar inputs del designer
 
+Lee `design_state.json` → campo `tipo_interfaz`. Si es `"web"`, carga el catálogo de `Web-Radix-Comopnents` y `Radix Tokens Foundation`. Si es `"app"` (o no existe), carga `prisma_design_system.md`.
+
 ```
-Cargué el PDR y el sistema de diseño Prisma.
+Cargué el PDR y el sistema de diseño [Prisma / Web-Radix-Comopnents].
 
 Confirma estos datos antes de continuar:
 
 1. MARCA ACTIVA: [detectada del PDR o design_state.json]
-2. PLATAFORMA: [detectada o preguntar]
-3. FLUJOS EN SCOPE: [detectados del MVP scope — confirmar o ajustar]
-4. PERSONAS ACTIVAS: [detectadas del PDR — confirmar o ajustar]
-5. ¿HAY DISEÑO EXISTENTE? [link a Figma/Drive — o "ninguno"]
+2. TIPO DE INTERFAZ: [app / web — detectado del design_state.json]
+3. PLATAFORMA: [detectada o preguntar]
+4. FLUJOS EN SCOPE: [detectados del MVP scope — confirmar o ajustar]
+5. PERSONAS ACTIVAS: [detectadas del PDR — confirmar o ajustar]
+6. ¿HAY DISEÑO EXISTENTE? [link a Figma/Drive — o "ninguno"]
 ```
 
 ### 3. Ejecutar las 6 fases
@@ -77,11 +108,12 @@ Por cada flujo: lista todas las pantallas en orden, con tipo (NUEVA/EXISTENTE/RE
 **Fase 3 — Jerarquía de información (pantallas P1)**
 Para cada pantalla P1, tabla con:
 - Propósito · Acción principal · Contenido requerido (ordenado) · Contenido prohibido
-- Componentes Prisma con jerarquía Figma completa:
-  `[Grupo] > [Nombre] · [prop=valor] · [prop=valor]`
+- Componentes con formato según plataforma:
+  **APP** → `[Grupo] > [Nombre] · [prop=valor]`  (librería: Prisma-Components)
   Ejemplo: `Atoms > Buttons · Size=Lg · State=Default · Type=Button`
-  Ejemplo: `Molecules > Inputs · Type=Text field · State=Default`
-  — verificar existencia en sección 10 de `prisma_design_system.md`
+  **WEB** → `[Nombre] · [prop=valor]`  (librería: Web-Radix-Comopnents)
+  Ejemplo: `Button · variant=primary · size=md`
+  Componentes no disponibles en web: `[Nombre] [WIP]`
 - Tokens semánticos aplicados
 - Estados: error / vacío / carga → componente Prisma que lo maneja
 - Criterio de éxito (conectado con métrica de S5)
@@ -109,12 +141,26 @@ Consolida todo en documento accionable. Lista las decisiones abiertas que el des
 
 ### 4. Verificar calidad
 
+**Quality Gate — APP:**
 - [ ] `prisma_design_system.md` leído — ningún componente inventado.
+- [ ] Cada componente usa tokens (no hex, no valores arbitrarios).
+- [ ] Orden de decisión respetado: existente → variante → property → slot → composición → nuevo.
+- [ ] Component Gaps declarados explícitamente (no silenciosos).
+- [ ] Jerarquía de 5 niveles definida: Propósito → Acción → Información → Metadata → Decoración.
+- [ ] Safe Areas iOS respetadas · targets táctiles ≥ 44pt contemplados.
+
+**Quality Gate — WEB:**
+- [ ] Catálogo `Web-Radix-Comopnents` consultado — ningún componente inventado.
+- [ ] Tokens `Radix Tokens Foundation` usados: `Spacing/N`, `Typography/N·Bold/Light`.
+- [ ] Breakpoints definidos (1440 / 1280 / 768px).
+- [ ] Pattern Gaps declarados explícitamente.
+- [ ] Grid 12 columnas especificado para pantallas P1.
+
+**Quality Gate — COMÚN:**
 - [ ] Cada pantalla tiene justificación en un MOT o fricción de S4.
-- [ ] Pantallas P1 tienen jerarquía completa + `prompt_brief` de 3 líneas.
-- [ ] Cada componente incluye jerarquía Figma completa: `[Grupo] > [Nombre] · props`.
-- [ ] Todos los grupos son válidos: Atoms / Molecules / Organisms / Headers / Cards / Nav.
-- [ ] Estados de error/vacío/carga tienen componente Prisma asignado.
+- [ ] Pantallas P1 tienen jerarquía completa + `prompt_brief` de 4 líneas.
+- [ ] Estados de error/vacío/carga tienen componente asignado.
+- [ ] Accesibilidad contemplada: contraste, targets, no color como único indicador.
 - [ ] Decisiones abiertas separadas del output.
 
 ### 5. Guardar outputs

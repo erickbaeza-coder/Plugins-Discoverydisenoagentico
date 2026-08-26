@@ -8,7 +8,7 @@ description: >
   "prompts de Figma Make", "prompt para Figma"
   o cualquier variante que indique querer ejecutar el tercer paso del Diseño agéntico.
 metadata:
-  version: "2.3.0"
+  version: "2.4.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -27,7 +27,13 @@ Lee `design_state.json`. Verifica que DS1 y DS2 estén `completo`. Extrae ambos 
 
 Si DS1 o DS2 no están completos, informa qué falta y sugiere ejecutarlo primero.
 
-Carga también `prisma_design_system.md` (carpeta de trabajo). Fallback: `../../references/prisma_design_system.md` si no existe en el proyecto.
+**Detectar plataforma:** Lee `design_state.json → tipo_interfaz`.
+- `"app"` → proceso estándar con Prisma-Components (flujo actual).
+- `"web"` → usar Web-Radix-Comopnents + browser frame (ver notas WEB en pasos siguientes).
+- Si no existe → asumir `"app"`.
+
+**APP:** Carga `prisma_design_system.md` (carpeta de trabajo). Fallback: `../../references/prisma_design_system.md`.
+**WEB:** Usar catálogo `Web-Radix-Comopnents` (Button · Icon Button · Text Field · Text Area · Radio · Radio Group · Checkbox Group · Segmented Control · Dropdown Menu · Popover · Alert Dialog · Slot) + tokens `Radix Tokens Foundation` (`Spacing/1–9`, `Typography/1–9·Bold/Light`). Marcar componentes no disponibles con `[WIP]`.
 
 ### 2. Identificar flujo principal y pantallas clave
 
@@ -92,8 +98,13 @@ El HTML debe mostrar:
 **Guía de fidelidad para los mockups:**
 - Usar colores reales de la marca (no gris plano)
 - Contenido real de las pantallas (del `prompt_brief` de DS1) — no lorem ipsum
-- Componentes Prisma visibles como bloques etiquetados
+- Componentes visibles como bloques etiquetados (Prisma-Components para APP, Web-Radix-Comopnents para WEB)
 - Lo suficiente para que el designer diga "esa, no las otras dos" — no más
+
+**Frame según plataforma:**
+- **APP** → frame de teléfono · 390×844px · con status bar y Home Indicator
+- **WEB desktop** → frame de browser · 1440×900px · con barra de browser (URL + tabs) · max-content 1280px centrado · top navigation visible
+- **WEB mobile** → frame de browser mobile · 375×812px · con URL bar mobile
 
 **Proporciones:** los 3 mockups deben ser comparables — mismo tamaño de frame, mismas pantallas, misma información. Lo único que cambia es la dirección de diseño.
 
@@ -202,7 +213,11 @@ Regla para armar la composición:
 
 ---
 
-**Schema del JSON (packets.ds3) — v2.0:**
+**⚠️ NOTA WEB:** Cuando `tipo_interfaz == "web"`, el JSON usa `Web-Radix-Comopnents` y el schema cambia levemente (ver sección 7-WEB más abajo después del schema APP). El flujo completo de pasos 7.0–7.6 aplica igual, adaptando los componentes.
+
+---
+
+**Schema del JSON (packets.ds3) — v2.0 APP:**
 
 > ⚠️ **v2.0 incluye campos de layout** que Prisma Designer interpreta para aplicar padding, gap, sizing y boolean props. Todos los campos nuevos son opcionales — JSONs v1.6 siguen funcionando sin cambios.
 
@@ -468,6 +483,76 @@ Nav Bar > NavBar · Color=Color · Type=Home · State=Default         ← nav in
 
 ---
 
+### 7-WEB. Schema JSON para plataforma WEB
+
+**Solo usar cuando `tipo_interfaz == "web"`.**
+
+El JSON web usa el mismo schema base v2.0 con estas diferencias:
+
+```json
+{
+  "version": "2.0",
+  "proyecto": "[nombre del proyecto]",
+  "marca": "[nombre]",
+  "plataforma": "web_desktop",
+  "libreria": "Web-Radix-Comopnents",
+  "tokens": "Radix Tokens Foundation",
+  "flujo": "[nombre del flujo principal]",
+  "direccion": "[A|B|C]",
+  "pantallas": [
+    {
+      "id": "P01",
+      "nombre": "[nombre de la pantalla]",
+      "descripcion": "[descripción funcional en 1 línea]",
+      "layout": {
+        "direction": "vertical",
+        "gap": 0,
+        "padding": { "top": 0, "right": 80, "bottom": 0, "left": 80 },
+        "clipContent": true,
+        "width": 1440,
+        "maxContentWidth": 1280,
+        "backgroundColor": "#FFFFFF"
+      },
+      "componentes": [
+        {
+          "orden": 1,
+          "componente": "Button · variant=primary · size=md",
+          "libreria": "Web-Radix-Comopnents",
+          "disponible": true,
+          "rol": "[descripción del rol en la pantalla]",
+          "tokens": {
+            "spacing": "Spacing/4",
+            "typography": "Typography/3·Bold"
+          },
+          "contenido": "[texto real]"
+        },
+        {
+          "orden": 2,
+          "componente": "Data Table [WIP]",
+          "libreria": "Web-Radix-Comopnents",
+          "disponible": false,
+          "rol": "[descripción del rol]",
+          "tokens": {
+            "spacing": "Spacing/4"
+          },
+          "contenido": "[contenido de la tabla]"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Reglas específicas para JSON web:**
+- Campo `"libreria": "Web-Radix-Comopnents"` obligatorio a nivel pantalla y componente.
+- Campo `"disponible": false` + nombre con `[WIP]` para componentes no en la librería.
+- `layout.width: 1440` para desktop · `375` para web_mobile.
+- `layout.padding` usa valores de `Radix Tokens Foundation`: padding horizontal `Spacing/8` ≈ 80px en desktop, `Spacing/4` ≈ 24px en mobile.
+- Para top navigation: primer componente siempre es navegación superior (no bottom nav).
+- Prompts de Figma Make para web usan `LIBRERÍA FIGMA: Web-Radix-Comopnents [WIP]` y `FRAME: 1440×900px (browser desktop)`.
+
+---
+
 ### 7.5 Validación de cobertura DS3 vs DS2
 
 Antes de entregar el JSON, realizá este cruce obligatorio entre el DS2 y el JSON que acabás de generar.
@@ -559,6 +644,36 @@ El DS2 incluye [N] pantallas de estado especial:
 ```
 
 > Nota: `Skeleton=True` activa el estado skeleton del componente. Usarlo en Banner_principal y Title_section para simular la carga de contenido.
+
+---
+
+### 7.7 Quality Gate — Prisma Design System
+
+Antes de entregar el JSON y los prompts, validar cada pantalla P1 contra estas reglas:
+
+**APP — Reglas Prisma (Quality Gate):**
+- [ ] Ningún hex directo — solo tokens semánticos Prisma.
+- [ ] Orden de selección: existente → variante → property → slot → composición → nuevo. COMPONENT GAPsdeclarados.
+- [ ] Jerarquía de 5 niveles definida: Propósito → Acción → Información → Metadata → Decoración.
+- [ ] Accesibilidad: contraste, targets táctiles, no color como único indicador de estado.
+- [ ] Safe Areas iOS respetadas · no solapamiento con status bar ni Home Indicator.
+- [ ] Pantalla tiene foco visual claro — se entiende en < 5 segundos qué hacer.
+- [ ] Auto-crítica: ¿Hay elementos que simplificaría? ¿Hay componente Prisma que reemplaza una solución custom?
+
+**WEB — Reglas Radix (Quality Gate):**
+- [ ] Ningún px arbitrario — solo `Spacing/N` y `Typography/N`.
+- [ ] Componentes [WIP] marcados explícitamente.
+- [ ] Grid 12 columnas respetado, max-content 1280px.
+- [ ] Top navigation presente en cada pantalla desktop.
+- [ ] Accesibilidad: contraste, focus/keyboard visible.
+
+**Scoring Prisma Gold Standard (APP):**
+- 90–100: Gold Standard ✅
+- 80–89: Aprobable con mejoras
+- 70–79: Requiere revisión
+- <70: No aprobado — corregir antes de entregar
+
+Reportar el quality score estimado por pantalla P1 al final del JSON.
 
 ---
 

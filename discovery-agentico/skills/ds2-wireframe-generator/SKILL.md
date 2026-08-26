@@ -5,7 +5,7 @@ description: >
   "wireframes HTML", "wireframe navegable", "paso 2 del diseño", "generar el wireframe"
   o cualquier variante que indique querer ejecutar el segundo paso del Diseño agéntico.
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -47,31 +47,75 @@ Documenta el mapa como comentario en el HTML.
 
 ### 3. Generar wireframe por pantalla (Fase 3)
 
+Lee `design_state.json → tipo_interfaz` para determinar el frame y las convenciones de diseño.
+
 Para cada pantalla P1 del inventario de DS1, genera el HTML con:
 
-1. **Frame del dispositivo** — teléfono o browser según plataforma, con status bar.
-2. **Bloques de contenido** — escala de grises con acentos de marca. Cada bloque = un componente Prisma.
-3. **Anotaciones inline** por bloque:
-   ```
-   Componente: [Grupo] > [nombre exacto de Prisma]  ← librería: Prisma-Components
-   Props: Size=Lg · State=Default · Type=Button
-   Tokens: Text.Primary.primary-default · spacing.spacing-4xl (24px)
-   Por qué: [fricción/MOT de S4 que justifica este elemento]
-   ```
+1. **Frame del dispositivo** — según plataforma (ver especificaciones abajo).
+2. **Bloques de contenido** — escala de grises con acentos de marca. Cada bloque = un componente.
+3. **Anotaciones inline** por bloque — formato según plataforma (ver abajo).
 4. **Barra de metadatos** — ID · Nombre · Flujo · Persona · Prioridad · Marca
 
-**Convenciones visuales:**
+---
+
+**📱 PLATAFORMA APP (`tipo_interfaz == "app"`):**
+
+Frame: teléfono móvil · 390×844px (iPhone 14 Pro) · con status bar y Home Indicator.
+
+Anotaciones:
+```
+Componente: [Grupo] > [nombre exacto de Prisma]  ← librería: Prisma-Components
+Props: Size=Lg · State=Default · Type=Button
+Tokens: Text.Primary.primary-default · spacing.spacing-4xl (24px)
+Por qué: [fricción/MOT de S4 que justifica este elemento]
+```
+
+Convenciones visuales APP:
 - Fondos neutros: `#f5f5f5` (ref: `Prisma.Grey.50`); con marca: color primario al 10%
 - Bordes: `Stroke.Stroke-1 (1px) dashed` gris o `Stroke.Stroke-2 (2px)` en color primario
 - Tipografía: Plus Jakarta Sans — rectángulos de altura fija según escala real (Display.lg=57px · Body.lg=16px · Label.md=12px)
 - Imágenes: rectángulo con aspa × centrada
-- Padding de pantalla: `spacing.spacing-4xl (24px)` horizontal
-- Gap entre secciones: `spacing.spacing-5xl (32px)`
+- Padding horizontal: `spacing.spacing-4xl (24px)` · Gap entre secciones: `spacing.spacing-5xl (32px)`
 - Gap entre elementos: `spacing.spacing-2xl (16px)`
-- Border radius en cards: `Border.radius-m (8px)`; bottom sheets: `Border.radius-3xl (24px)`
-- Botón primario: relleno sólido con color primario · `Border.radius-s (4px)`
-- Botón secundario: borde `Stroke.Stroke-2` color primario, fondo transparente
+- Border radius en cards: `Border.radius-m (8px)` · bottom sheets: `Border.radius-3xl (24px)`
+- Botón primario: relleno sólido color primario · `Border.radius-s (4px)`
 - Inputs: fondo gris claro · `Border.radius-s (4px)` · borde `Stroke.Stroke-1`
+- Respetar Safe Areas: contenido inicia bajo status bar, no solapa Home Indicator
+
+---
+
+**🌐 PLATAFORMA WEB (`tipo_interfaz == "web"`):**
+
+Frames:
+- `web_desktop`: ventana browser · 1440×900px · con barra de browser (URL bar + tabs), max-content 1280px centrado
+- `web_mobile`: ventana browser mobile · 375×812px · con URL bar de mobile
+
+Anotaciones:
+```
+Componente: [Nombre]  ← Web-Radix-Comopnents [disponible / WIP]
+Props: variant=primary · size=md
+Tokens: Typography/3·Bold · Spacing/4
+Por qué: [fricción/MOT de S4 que justifica este elemento]
+```
+
+Convenciones visuales WEB:
+- Fondos neutros: `#f8f8f8`; con marca: color primario al 8%
+- Grid: 12 columnas · gutter `Spacing/4` · margin exterior `Spacing/8` (desktop), `Spacing/4` (mobile)
+- Top navigation: sticky · altura 64px · logo + links + CTA principal
+- Tipografía: Inter / System font — rectángulos según escala Radix (Typography/5=1rem base · Typography/7=1.5rem heading)
+- Imágenes: rectángulo con aspa × centrada
+- Padding de sección: `Spacing/7` vertical · `Spacing/8` horizontal (desktop)
+- Gap entre secciones: `Spacing/8` · Gap entre elementos: `Spacing/4`
+- Border radius: `Spacing/2 (0.25rem)` para inputs/buttons · `Spacing/3` para cards
+- Botón primario: relleno color primario · `Button/Primary/color-bt-bg-default`
+- Inputs: fondo blanco · borde 1px solid · `Text Field · state=default`
+- No hay bottom nav en desktop · en mobile usar menú hamburguesa en top nav
+- Sidebar (si aplica): ancho 240px fijo en desktop · colapsable en tablet
+
+Flowchart WEB (nodos adaptados):
+- Tamaño de nodo: 200×130px (landscape, simula browser wide)
+- Preview inner: scale ~0.22 · overflow hidden
+- Borde coloreado por fricción igual que APP
 
 ### 4. Generar estados especiales
 
@@ -175,10 +219,24 @@ wireframe-[proyecto]-[marca]-v1.html
 
 ### 7. Verificar calidad
 
+**Reglas de diseño — Quality Gate Prisma (APP):**
+- [ ] Ningún hex directo ni valor de spacing arbitrario — solo tokens semánticos Prisma.
+- [ ] Orden de selección de componentes respetado (existente → variante → property → slot → nuevo).
+- [ ] Component Gaps declarados con `⚠ NUEVO` y borde rojo — nunca silenciosos.
+- [ ] Safe Areas iOS respetadas en todos los frames.
+- [ ] Contraste visible entre texto y fondo en anotaciones y wireframe.
+
+**Reglas de diseño — Quality Gate Web:**
+- [ ] Tokens `Spacing/N` y `Typography/N·Bold/Light` usados en convenciones — nunca px arbitrarios.
+- [ ] Frame browser presente (URL bar visible) en wireframes web_desktop y web_mobile.
+- [ ] Top navigation visible en cada pantalla desktop.
+- [ ] Grid 12 columnas respetado (max-content 1280px centrado).
+- [ ] Componentes `[WIP]` marcados explícitamente.
+
+**Quality Gate — Común:**
 - [ ] Cada bloque tiene anotación con componente + props + token + motivo.
-- [ ] Componentes nuevos marcados con borde rojo y etiqueta ⚠ NUEVO.
 - [ ] La marca tiene sus colores reales aplicados (no gris uniforme).
-- [ ] Cada pantalla P1 tiene sus variantes de estado.
+- [ ] Cada pantalla P1 tiene sus variantes de estado (error / vacío / loading).
 - [ ] El HTML funciona sin conexión.
 - [ ] Navegación entre pantallas funciona.
 - [ ] Toggle de anotaciones funciona.
@@ -187,9 +245,9 @@ wireframe-[proyecto]-[marca]-v1.html
 - [ ] Cada nodo del flowchart muestra mini-wireframe (no solo texto).
 - [ ] Click en nodo del flowchart navega al wireframe correcto.
 - [ ] Nodos coloreados por fricción (🟢/🟡/🔴).
-- [ ] Las flechas de navegación entre nodos están presentes con labels de acción.
+- [ ] Flechas de navegación presentes con labels de acción.
 - [ ] No hay nodos sin conectar (excepto START y END).
-- [ ] El canvas del flowchart tiene scroll/zoom.
+- [ ] Canvas del flowchart con scroll/zoom.
 
 ### 8. Guardar outputs
 

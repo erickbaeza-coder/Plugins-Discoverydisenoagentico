@@ -1,7 +1,7 @@
 {
-  "version": "2.14.0",
-  "release_date": "2026-08-12",
-  "changelog": "v2.14.0 — S2: nueva Fase 1d con análisis de reseñas de App Store y Google Play (pain points reales de usuarios de apps competidoras). Pregunta al designer si usar Chrome MCP, WebSearch o saltar la fase.",
-  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.14.0/discovery-agentico-v2.14.0.plugin",
+  "version": "2.15.0",
+  "release_date": "2026-08-26",
+  "changelog": "v2.15.0 — Soporte web completo (DS1–DS3) + Reglas Prisma embebidas. Discovery-inicio y diseno-inicio preguntan tipo de interfaz (app/web) al inicio. DS1 incluye rama web con Web-Radix-Comopnents y Radix Tokens Foundation (Spacing/N, Typography/N). DS2 genera browser frame para web_desktop/web_mobile con anotaciones Radix. DS3 incluye JSON schema web (plataforma=web_desktop, width=1440) y quality gate Prisma Gold Standard. Prisma Design System Rules incorporadas en DS1–DS3: Component Rules, UI Rules, Screen Playbook, Accessibility Rules, Motion Rules.",
+  "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.15.0/discovery-agentico-v2.15.0.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }

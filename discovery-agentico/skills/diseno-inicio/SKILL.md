@@ -7,7 +7,7 @@ description: >
   o cualquier variante que indique querer comenzar o retomar el proceso de Diseño agéntico DS1–DS3.
   Esta skill es el punto de entrada al proceso de diseño que sigue al Discovery agéntico (S1–S6).
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -30,7 +30,25 @@ DS3 — Design Directions
 
 ## Al activarse
 
-### Paso 0 — Verificar prisma_design_system.md
+### Paso 0 — Detectar tipo de interfaz
+
+Lee `discovery_state.json` si existe. Extrae el campo `tipo_interfaz` (`"app"`, `"web"`, o `"ambos"`).
+
+- **`app`**: el proceso de diseño usará Prisma Design System (`Prisma-Components` + tokens Prisma).
+- **`web`**: el proceso de diseño usará `Web-Radix-Comopnents` + `Radix Tokens Foundation`.
+- **`ambos`**: pregunta al designer cuál plataforma priorizar para el diseño agéntico.
+- **No existe o null**: pregunta al designer antes de continuar:
+
+```
+¿El proyecto es para app (iOS/Android) o web (desktop/mobile)?
+Opciones: app · web · ambos
+```
+
+Guarda el valor en `design_state.json → tipo_interfaz` en el paso 1.
+
+---
+
+### Paso 0.5 — Verificar referencia de diseño
 
 Antes de cualquier otra cosa, verifica si `prisma_design_system.md` existe en la carpeta de trabajo del proyecto.
 
@@ -72,9 +90,12 @@ Antes de empezar necesito algunos datos:
 
 1. ¿Dónde está el PDR? [nombre del archivo, ej. "PDR_Prezunic_v1.0.md" — o "usar discovery_state.json"]
 2. MARCA: [Prisma | Disco | Jumbo | Metro | Prezunic | The Fresh Market]
-3. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
+3. TIPO DE INTERFAZ: [detectado del discovery_state.json — o preguntar: app · web · ambos]
+   → app: usará Prisma-Components + tokens Prisma
+   → web: usará Web-Radix-Comopnents + Radix Tokens Foundation
+4. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
    Opciones: app_ios · app_android · web_mobile · web_desktop · todas
-4. FLUJOS EN SCOPE: [ej. "onboarding + home + flujo de compra" — o "todos los del MVP"]
+5. FLUJOS EN SCOPE: [ej. "onboarding + home + flujo de compra" — o "todos los del MVP"]
 ```
 
 Cuando el designer responda, crea `design_state.json`:
@@ -84,6 +105,7 @@ Cuando el designer responda, crea `design_state.json`:
   "proyecto": "[extraído del PDR o discovery_state.json]",
   "pdr_source": "[nombre del archivo PDR]",
   "marca": "[marca elegida]",
+  "tipo_interfaz": "app | web | ambos",
   "plataformas": ["[plataforma1]"],
   "flujos_en_scope": [],
   "fecha_inicio": "[fecha actual]",
@@ -110,7 +132,7 @@ Léelo y muestra el panel de estado.
 ### Paso 2 — Mostrar panel de estado
 
 ```
-# Diseño: [proyecto] · [marca] · [plataformas separadas por coma]
+# Diseño: [proyecto] · [marca] · [app/web/ambos] · [plataformas separadas por coma]
 
 Estado del proceso:
 ⬜ DS1 — Wireframe Brief & Viabilidad     [pendiente/en progreso/completo]

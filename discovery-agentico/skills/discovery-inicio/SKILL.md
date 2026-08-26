@@ -6,7 +6,7 @@ description: >
   "¿qué sigue?", "ver estado del proceso" o cualquier variante que indique querer
   comenzar o retomar el proceso de Discovery agéntico S1–S6.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -150,7 +150,9 @@ Solo solicita los datos que Jira no completó:
 1. PRODUCTO: ¿En qué app/web existe esta feature?
 2. FEATURE: ¿Cuál es exactamente la que se va a mejorar?
 3. PROBLEMA: ¿Qué está fallando hoy? (métrica o fricción concreta)
-4. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
+4. TIPO DE INTERFAZ: ¿Es principalmente app (iOS/Android) o web?
+   Opciones: app · web · ambos
+5. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, app_android")
    Opciones: app_ios · app_android · web_mobile · web_desktop
 ```
 
@@ -160,7 +162,9 @@ Solo solicita los datos que Jira no completó:
 2. FEATURE: ¿Qué querés construir?
 3. USUARIO TARGET: ¿Para quién es principalmente?
 4. CONTEXTO: ¿Hay un OKR o iniciativa que lo impulse?
-5. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, web_mobile")
+5. TIPO DE INTERFAZ: ¿Es principalmente app (iOS/Android) o web?
+   Opciones: app · web · ambos
+6. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una, ej: "app_ios, web_mobile")
    Opciones: app_ios · app_android · web_mobile · web_desktop · todas
 ```
 
@@ -170,7 +174,9 @@ Solo solicita los datos que Jira no completó:
 2. TIPO: ¿Qué tipo de app/web es?
 3. MERCADO: ¿Para qué país o región?
 4. VISIÓN: En 1 frase, ¿qué problema resuelve?
-5. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una)
+5. TIPO DE INTERFAZ: ¿Es principalmente app (iOS/Android) o web?
+   Opciones: app · web · ambos
+6. PLATAFORMAS: ¿En qué plataformas? (podés indicar más de una)
    Opciones: app_ios · app_android · web_mobile · web_desktop · todas
 ```
 
@@ -180,7 +186,8 @@ Cuando el designer responda, crea `discovery_state.json`:
 {
   "proyecto": "[nombre]",
   "tipo_proyecto": "mejora | funcionalidad_nueva | proyecto_nuevo",
-  "version": "1.2",
+  "tipo_interfaz": "app | web | ambos",
+  "version": "1.3",
   "jira_ticket": {
     "id": "[ID o null]",
     "summary": "[texto o null]",
@@ -217,7 +224,7 @@ Cuando el designer responda, crea `discovery_state.json`:
 ### Paso 5 — Mostrar panel de estado
 
 ```
-# Discovery: [proyecto] · [emoji] [tipo]
+# Discovery: [proyecto] · [emoji] [tipo] · 📱 [app/web/ambos]
 [Si viene de Jira → "Contexto cargado desde [ID]"]
 Iniciado: [fecha]
 
