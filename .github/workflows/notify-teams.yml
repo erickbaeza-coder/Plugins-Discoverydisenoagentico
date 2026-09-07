@@ -24,7 +24,11 @@ jobs:
           CLEAN="${VERSION#v}"
           REPO="${{ github.repository }}"
           URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
-          jq --arg v "$CLEAN" --arg d "$(date +%Y-%m-%d)" --arg u "$URL" '.version=$v | .release_date=$d | .download_url=$u' version.json > /tmp/vj.json && mv /tmp/vj.json version.json
+          CHANGELOG="${{ github.event.release.body }}"
+          # Tomar changelog: primera línea no vacía del release body (o el body completo si es corto)
+          CHANGELOG_SHORT=$(echo "$CHANGELOG" | head -3 | tr '\n' ' ' | sed 's/[#*`]//g' | xargs)
+          jq --arg v "$CLEAN" --arg d "$(date +%Y-%m-%d)" --arg u "$URL" --arg c "$CHANGELOG_SHORT" \
+            '.version=$v | .release_date=$d | .download_url=$u | .changelog=$c' version.json > /tmp/vj.json && mv /tmp/vj.json version.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json

@@ -22,9 +22,9 @@ https://raw.githubusercontent.com/erickbaeza-coder/Plugins-Discoverydisenoagenti
 
 > ⚠️ Reemplaza `GITHUB_ORG/GITHUB_REPO` con el valor real del repositorio configurado.
 
-**Si la respuesta es exitosa:** extrae el campo `version` del JSON y compáralo con la versión instalada del plugin: `2.8.0`
+**Si la respuesta es exitosa:** extrae el campo `version` del JSON y compáralo con la versión instalada del plugin: `2.15.0`
 
-**Si `remote_version` > `2.8.0`** (comparación semántica mayor.minor.patch):
+**Si `remote_version` > `2.15.0`** (comparación semántica mayor.minor.patch):
 
 Muestra este banner ANTES del panel de estado, una sola vez por sesión:
 
@@ -32,7 +32,7 @@ Muestra este banner ANTES del panel de estado, una sola vez por sesión:
 ╔══════════════════════════════════════════════════════════════╗
 ║  🆕 Nueva versión disponible: discovery-agentico v[VERSION]  ║
 ║                                                              ║
-║  Tienes instalada la v2.8.0                                  ║
+║  Tienes instalada la v2.15.0                                 ║
 ║  [CHANGELOG del version.json]                                ║
 ║                                                              ║
 ║  📥 Descarga: [download_url del version.json]                ║
@@ -40,7 +40,7 @@ Muestra este banner ANTES del panel de estado, una sola vez por sesión:
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
-**Si `remote_version` == `2.8.0` o el fetch falla:** continúa sin mostrar nada.
+**Si `remote_version` == `2.15.0` o el fetch falla:** continúa sin mostrar nada.
 
 ---
 
