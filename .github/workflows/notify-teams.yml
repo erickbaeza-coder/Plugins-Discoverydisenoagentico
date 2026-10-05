@@ -3,6 +3,12 @@ name: Notificar Teams - Nueva version del plugin
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag del release (ej: v2.22.1)'
+        required: true
+        default: 'v2.22.1'
 
 permissions:
   contents: write
@@ -11,29 +17,35 @@ jobs:
   notify:
     name: Enviar notificacion a Teams
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: main
+          fetch-depth: 0
 
       - name: Actualizar version.json
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${{ github.event.release.tag_name || inputs.tag_name }}"
           CLEAN="${VERSION#v}"
           REPO="${{ github.repository }}"
           URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
           CHANGELOG="${{ github.event.release.body }}"
-          # Tomar changelog: primera línea no vacía del release body (o el body completo si es corto)
           CHANGELOG_SHORT=$(echo "$CHANGELOG" | head -3 | tr '\n' ' ' | sed 's/[#*`]//g' | xargs)
           jq --arg v "$CLEAN" --arg d "$(date +%Y-%m-%d)" --arg u "$URL" --arg c "$CHANGELOG_SHORT" \
             '.version=$v | .release_date=$d | .download_url=$u | .changelog=$c' version.json > /tmp/vj.json && mv /tmp/vj.json version.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.json
-          git diff --staged --quiet || git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
-          git push origin main
+          if git diff --staged --quiet; then
+            echo "version.json ya esta actualizado, sin cambios."
+          else
+            git commit -m "chore: bump version.json to ${VERSION} [skip ci]"
+            git pull --rebase origin main
+            git push origin main
+          fi
 
       - name: Enviar notificacion a Teams
         env:
