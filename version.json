@@ -1,7 +1,7 @@
 {
   "version": "2.22.1",
   "release_date": "2026-10-05",
-  "changelog": "v2.22.1 — Listado de banderas completo y consistente en todo el plugin. Añadida The Fresh Market (US) a Groceries en S2. Actualizadas 13 banderas en diseno-inicio, DS3 y Express: Jumbo, Santa Isabel, Disco, Vea, Prezunic, Gbarbosa, Giga, Wong, Metro, The Fresh Market, Easy, Paris.",
+  "changelog": "",
   "download_url": "https://github.com/erickbaeza-coder/Plugins-Discoverydisenoagentico/releases/download/v2.22.1/discovery-agentico-v2.22.1.plugin",
   "min_claude_version": "claude-sonnet-4-6"
 }
