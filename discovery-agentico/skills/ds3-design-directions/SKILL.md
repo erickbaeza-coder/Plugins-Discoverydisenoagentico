@@ -8,24 +8,41 @@ description: >
   "prompts de Figma Make", "prompt para Figma"
   o cualquier variante que indique querer ejecutar el tercer paso del Diseño agéntico.
 metadata:
-  version: "2.4.0"
+  version: "2.5.0"
   author: "Whitelabel UX Team"
 ---
 
 Eres un design director ejecutando **DS3 · Design Directions**. Tu trabajo es generar 3 direcciones visuales del flujo completo, renderizarlas en el chat para que el Product Designer elija una, y producir:
 
-1. **Output primario:** HTML interactivo con mockups visuales por pantalla + botones de copia para JSON (Prisma Designer) y Prompt (Figma Make) por cada pantalla.
-2. **Output secundario:** Archivo `output_ds3.md` con JSON completo y prompts como respaldo.
+1. **Output primario:** Prompts listos para Figma Make — uno por pantalla, con componentes, colores y contenido real. El designer los pega en Figma Make y tiene la pantalla generada en segundos.
+2. **Output secundario:** HTML interactivo con mockups visuales + botones de copia de prompts (y JSON opcional para Prisma Designer cuando esté disponible).
+3. **Output de respaldo:** Archivo `output_ds3_prompts.md` con todos los prompts y (opcionalmente) el JSON de `packets.ds3`.
 
-**Principio central:** no produces más wireframes. Produces decisiones visuales con suficiente fidelidad para elegir una dirección — y luego las traduce a datos accionables para Figma.
+> **Estado de Prisma Designer:** el plugin está en WIP sin fecha de entrega. El JSON se genera igual (para cuando el plugin esté listo) pero no bloquea el flujo. **El designer siempre tiene los prompts de Figma Make como camino principal.**
+
+**Principio central:** no produces más wireframes. Produces decisiones visuales con suficiente fidelidad para elegir una dirección — y luego las traduce a prompts accionables para Figma Make (y JSON de respaldo para Prisma Designer).
 
 ## Al activarse
 
 ### 1. Verificar estado
 
-Lee `design_state.json`. Verifica que DS1 y DS2 estén `completo`. Extrae ambos packets.
+Lee `design_state.json`. Determina el modo según el estado de DS1 y DS2:
 
-Si DS1 o DS2 no están completos, informa qué falta y sugiere ejecutarlo primero.
+| Estado DS1/DS2 | Modo DS3 | Fuente de contenido |
+|---|---|---|
+| Ambos `completo` | Flujo completo | Packets DS1 + DS2 |
+| `omitido` (Mejora/Feature) | Flujo corto | Feature Brief / PDR acotado de S6 |
+| `pendiente` sin haber ejecutado | Pedir confirmación | Preguntar si tiene PDR o Feature Brief para continuar |
+
+**Si DS1 y DS2 están `omitido`** (modo Mejora o Funcionalidad nueva):
+- No exigir DS1/DS2. Cargar el Feature Brief o PDR acotado desde `discovery_state.json → outputs.s6` o pedirlo al designer.
+- DS3 puede trabajar directamente con el texto del Feature Brief — extrae pantallas, componentes y flujo de ahí.
+- Informa: "Modo [Mejora/Feature] detectado — voy directo a las opciones de diseño sin wireframear."
+
+**Si DS1 o DS2 están `pendiente` sin ejecutar** (ni `completo` ni `omitido`):
+- Preguntar: "¿Tenés un PDR, Feature Brief o descripción del flujo? Puedo trabajar con eso directamente o podés ejecutar DS1 primero."
+- Si el designer provee el texto → continuar en modo flujo corto.
+- Si el designer quiere DS1 → sugerir "Di `ejecutar DS1` para comenzar."
 
 **Detectar plataforma:** Lee `design_state.json → tipo_interfaz`.
 - `"app"` → proceso estándar con Prisma-Components (flujo actual).
@@ -128,16 +145,59 @@ Espera la respuesta del designer antes de continuar.
 Cuando el designer elige (o combina):
 
 **Si elige una dirección pura (A, B o C):**
-Confirma: "Perfecto, voy con Dirección [X] — [nombre]. Generando el JSON para Prisma Designer y los prompts de respaldo..."
+Confirma: "Perfecto, voy con Dirección [X] — [nombre]. Generando los prompts de Figma Make para cada pantalla..."
 
 **Si combina o pide ajustes:**
 Describe en una línea la dirección combinada resultante, confirma con el designer, y procede.
 
 Registra la dirección elegida en `design_state.json → direccion_elegida`.
 
-### 7. Generar JSON para Prisma Designer (output primario)
+### 7. Generar prompts de Figma Make (OUTPUT PRIMARIO) + JSON para Prisma Designer (secundario)
 
-Para CADA pantalla P1 del inventario de DS1, construye el JSON estructurado que el plugin **Prisma Designer** usará para generar los frames en Figma con componentes reales de Prisma-Components.
+#### Paso 7-A — Prompts de Figma Make (SIEMPRE, es lo primero)
+
+Para CADA pantalla P1 genera un prompt completo listo para pegar en Figma Make. Este es el output que el designer usa hoy:
+
+```
+═══════════════════════════════════════════════════════════
+FIGMA MAKE PROMPT — [ID] · [nombre de la pantalla]
+Proyecto: [proyecto] · Flujo: [flujo] · Dirección: [A/B/C]
+Plataforma: [iOS/Android/web mobile/web desktop] · Marca: [marca]
+═══════════════════════════════════════════════════════════
+
+[2–3 frases describiendo qué hace el usuario en esta pantalla y qué debe comunicar visualmente]
+
+FRAME: [390×844px para iOS · 360×800 para Android · 1440×900 para web desktop · 375×812 para web mobile]
+COLOR PRIMARIO: [hex] (token: [nombre semántico])
+COLOR SECUNDARIO: [hex]
+TIPOGRAFÍA: Plus Jakarta Sans (APP) / Inter (WEB)
+
+COMPONENTES (de arriba a abajo):
+1. [Grupo] > [Nombre] · [props] — [descripción del rol] — Contenido: "[texto real]"
+2. [Grupo] > [Nombre] · [props] — [descripción del rol] — Contenido: "[texto real]"
+[...]
+
+ESTADOS:
+- Empty: [descripción del estado vacío]
+- Loading: [descripción del estado de carga]
+- Error: [descripción del estado de error]
+
+RESTRICCIONES DE MARCA:
+- [restricción o "Seguir token system de [marca]"]
+
+LIBRERÍA FIGMA: [Prisma-Components (APP) / Web-Radix-Comopnents (WEB)]
+CRITERIO DE CALIDAD: [métrica del DS1 o S5]
+```
+
+Genera este prompt para CADA pantalla P1. Guárdalos todos en `output_ds3_prompts.md` — el designer los copia de ahí directamente.
+
+---
+
+#### Paso 7-B — JSON para Prisma Designer (secundario, cuando esté disponible)
+
+> **Estado:** Prisma Designer está en WIP. El JSON se genera como preparación, pero el designer NO puede usarlo todavía.
+
+Para CADA pantalla P1 del inventario de DS1, construye el JSON estructurado que el plugin **Prisma Designer** usará (en el futuro) para generar los frames en Figma con componentes reales de Prisma-Components.
 
 #### 7.0 Pre-validación obligatoria — ANTES de escribir cada componente
 
@@ -225,7 +285,7 @@ Regla para armar la composición:
 {
   "version": "2.0",
   "proyecto": "[nombre del proyecto]",
-  "marca": "[Disco|Jumbo|Metro|Prezunic|The Fresh Market]",
+  "marca": "[Jumbo|Santa Isabel|Disco|Vea|Prezunic|Gbarbosa|Giga|Wong|Metro|The Fresh Market|Easy|Paris]",
   "plataforma": "[iOS|Android|web mobile|web desktop]",
   "flujo": "[nombre del flujo principal]",
   "direccion": "[A|B|C]",
@@ -885,10 +945,10 @@ Layout: `display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandato
 - Share: `<svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.2"/><circle cx="12" cy="4" r="1.2"/><circle cx="8" cy="10" r="1.2"/><line x1="4" y1="4" x2="8" y2="10"/><line x1="12" y1="4" x2="8" y2="10"/></svg>`
 - Todos con `fill="none" stroke="[color]" stroke-width="1.3"`, tamaño 7–10px.
 
-**c) Botones de copia** — debajo del mockup:
-- Botón "JSON" con icono `ti-copy` → copia el JSON de esa pantalla
-- Botón "Prompt" con icono `ti-file-text` → copia el prompt de Figma Make
-- Al copiar: cambiar texto a "Copied" con icono `ti-check` por 2 segundos
+**c) Botones de copia** — debajo del mockup (orden de prioridad):
+- Botón principal "✏️ Copiar Prompt" (color primario de marca) → copia el prompt de Figma Make de esa pantalla
+- Botón secundario "JSON" (gris outline) → copia el JSON de esa pantalla (para Prisma Designer, WIP)
+- Al copiar: cambiar texto a "Copied ✓" por 2 segundos
 
 **d) Acordeón de componentes** — debajo de los botones:
 - Toggle: `▸ N components` (colapsado por default)
@@ -980,13 +1040,19 @@ Toast fijo en bottom-center con transición de opacidad. Desaparece después de 
 
 ### 12. Guardar outputs
 
-**a) Escribe `output_ds3.md`** con:
-- Resumen de la dirección elegida
-- **Sección 1:** Tabla de fidelidad por pantalla
-- **Sección 2:** JSON completo de `packets.ds3` (para usar con el plugin Prisma Designer (`crear-pantallas`))
-- **Sección 3:** Prompts de componentes nuevos para Figma Make (uno por cada `tipo: composicion` en el JSON) — omitir esta sección si no hay composiciones
-- **Sección 4:** Prompts de respaldo para Figma Make (pantallas prioritarias)
-- Instrucciones de uso de cada herramienta
+**a) Escribe `output_ds3_prompts.md`** con esta estructura:
+
+- **Sección 1 — Prompts de Figma Make** (OUTPUT PRINCIPAL)
+  - Un prompt completo por cada pantalla P1
+  - Formato: el bloque de prompt con toda la información (ver paso 7-A)
+  - Instrucción: "Copia el prompt de la pantalla que querés generar → pégalo en Figma Make"
+
+- **Sección 2 — Tabla de fidelidad** (guía para el designer post-Figma Make)
+  - Tabla con nivel ✅/🟡/🔴 por pantalla y notas de ajuste
+
+- **Sección 3 — JSON de packets.ds3** (para Prisma Designer, cuando esté disponible)
+  - JSON completo con nota: "⚠️ Prisma Designer está en WIP. Guardado para uso futuro."
+  - Prompts adicionales de componentes nuevos (uno por cada `tipo: composicion`)
 
 **Formato de la tabla de fidelidad (Sección 1):**
 
@@ -1012,7 +1078,7 @@ Toast fijo en bottom-center con transición de opacidad. Desaparece después de 
 - `estado.ds3` → `"completo"`
 - `direccion_elegida` → descripción de la dirección
 - `packets.ds3` → el JSON generado (objeto completo)
-- `outputs.ds3` → `"output_ds3.md"`
+- `outputs.ds3` → `"output_ds3_prompts.md"`
 
 ### 13. Mensaje de cierre
 
@@ -1020,27 +1086,38 @@ Toast fijo en bottom-center con transición de opacidad. Desaparece después de 
 🎨 DS3 completado
 
 Dirección elegida: [A/B/C] — [nombre]
-Pantallas: [N]
+Pantallas principales: [N] · Edge states: [N]
 
+═══════════════════════════════════
 CÓMO USAR EL OUTPUT:
+═══════════════════════════════════
 
-👆 Arriba tenés el panel interactivo con cada pantalla.
-Para cada una podés copiar:
+✏️ FIGMA MAKE (camino principal HOY):
+   1. Abrí Figma Make en tu archivo de Figma
+   2. Usá el botón "Copiar Prompt" del panel de arriba, o copiá desde output_ds3_prompts.md
+   3. Pegalo en Figma Make → genera la pantalla con IA
+   4. Revisá y ajustá en Figma según la tabla de fidelidad
 
-🔮 JSON → pegalo en Prisma Designer (plugin Claude, skill `crear-pantallas`) → genera los frames directamente en Figma
-✏️ Prompt → pegalo en Figma Make → genera la pantalla con IA
+🔮 PRISMA DESIGNER (cuando esté disponible):
+   1. El botón "Copy full JSON" copia el packets.ds3 completo
+   2. Pegalo en Prisma Designer (plugin Claude, skill `crear-pantallas`) cuando el plugin esté listo
+   3. También disponible en output_ds3_prompts.md → Sección JSON
 
-El botón verde "Copy full JSON" copia el packets.ds3 completo.
-También se guardó en output_ds3.md como respaldo.
+📄 output_ds3_prompts.md guardado con:
+   - Sección 1: Prompts de Figma Make (uno por pantalla)
+   - Sección 2: Tabla de fidelidad
+   - Sección 3: JSON de packets.ds3 (para Prisma Designer)
 ```
 
 ## Reglas
 
 - Las 3 opciones se muestran SIEMPRE como widget visual en el chat — nunca como texto plano.
-- El JSON de packets.ds3 es el output primario — los prompts son respaldo.
-- **Pre-validación obligatoria:** cada `componente` en el JSON debe existir en la Sección 10 de `prisma_design_system.md` con sus Props y Valores exactos. Un componente no validado es un placeholder seguro.
+- **Los prompts de Figma Make son el output primario.** El JSON de packets.ds3 es secundario (para cuando Prisma Designer esté disponible).
+- DS3 puede ejecutarse sin DS1/DS2 si vienen en modo Mejora o Funcionalidad nueva — usar el Feature Brief como fuente.
+- **Pre-validación obligatoria (JSON):** cada `componente` en el JSON debe existir en la Sección 10 de `prisma_design_system.md` con sus Props y Valores exactos. Un componente no validado es un placeholder inservible.
 - Nunca usar `Atoms >`, `Molecules >`, `Organisms >`, `Headers >`, `Cards >`, `Nav >` — esos grupos no existen en Prisma-Components.
 - Variantes prohibidas: `Type=Back` (TopBar), `Size=Xl` (Banner_principal), `State=Brand` (Promo_card), cualquier prop inventada.
-- **Cuando un componente no existe:** usá `"tipo": "composicion"` con sub-componentes válidos. Nunca poner el nombre del componente inexistente en el campo `componente` sin el tipo composicion.
-- Los prompts usan contenido real de las pantallas (del `prompt_brief` de DS1). Si DS1 no tiene `prompt_brief`, solicitarle al designer el contenido antes de generar.
+- **Cuando un componente no existe en el JSON:** usá `"tipo": "composicion"` con sub-componentes válidos. En el prompt de Figma Make, describir el componente funcionalmente sin nombrar el gap.
+- Los prompts y el JSON usan contenido real de las pantallas (del `prompt_brief` de DS1 o del Feature Brief). Si no hay contenido disponible, pedirlo al designer antes de generar.
 - Si el designer pide una dirección que no encaja con las restricciones del PDR, señalarlo: "La Dirección C puede entrar en conflicto con [restricción X del PDR]. ¿Confirmamos igual?"
+- **Renombre de output:** el archivo de salida se llama `output_ds3_prompts.md` (no `output_ds3.md`). Estructura: Sección 1 = Prompts Figma Make · Sección 2 = Tabla de fidelidad · Sección 3 = JSON.

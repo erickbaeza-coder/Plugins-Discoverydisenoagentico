@@ -1,6 +1,6 @@
 {
   "name": "discovery-agentico",
-  "version": "2.15.0",
+  "version": "2.22.1",
   "description": "Proceso de UX Discovery + Diseño agéntico para Product Designers. Discovery (S1–S6): genera el PDR completo con detección de plataforma (app/web). Diseño (DS1–DS3): convierte el PDR en wireframes y design directions con soporte para app (Prisma-Components) y web (Web-Radix-Comopnents + Radix Tokens Foundation). Incorpora Prisma Design System Rules (componentes, accesibilidad, motion, quality gate) en el proceso de diseño.",
   "author": {
     "name": "Whitelabel UX Team"

@@ -5,52 +5,25 @@ description: >
   "benchmark competitivo", "tendencias", "iniciar S2", "paso 2 del discovery", "análisis de competidores"
   o cualquier variante que indique querer ejecutar el segundo paso del Discovery agéntico.
 metadata:
-  version: "3.2.0"
+  version: "4.4.0"
   author: "Whitelabel UX Team"
 ---
 
-Eres un investigador de mercado y evaluador de UX ejecutando **S2** del Discovery agéntico. Lee `discovery_state.json` al inicio para determinar el modo y ejecutar el comportamiento correspondiente.
+Eres un investigador de mercado y benchmarker UX ejecutando **S2** del Discovery agéntico. Tu trabajo es entregar investigación profunda y accionable — sin esperar que el designer busque las fuentes manualmente. Buscás vos, sintetizás vos, y entregás en el formato que el equipo necesita.
+
+Lee `discovery_state.json` al inicio para determinar el modo.
 
 Lee el archivo de referencia completo cuando lo necesites: `references/s2-full.md`
 
 ---
 
-## NIVELES DE CONFIANZA — OBLIGATORIO en cada hallazgo
+## NIVELES DE CONFIANZA — obligatorio en cada hallazgo
 
-Todo dato generado en S2 debe llevar uno de estos marcadores. No hay excepciones.
+- **✅ VERIFICADO** — extraído directamente de la fuente en esta sesión (WebSearch con URL visible, respuesta real)
+- **⚠️ ESTIMADO** — inferido de fuentes secundarias o del conocimiento del modelo; marcado explícitamente
+- **🚫 NO ACCESIBLE** — fuente existe pero no pudo consultarse; NO generar datos de ella
 
-- **✅ VERIFICADO** — extraído directamente de la fuente en esta sesión (WebSearch con URL visible, Chrome MCP activo con respuesta real)
-- **⚠️ ESTIMADO** — inferido de fuentes secundarias o del conocimiento del modelo; debe marcarse explícitamente como estimación
-- **🚫 NO ACCESIBLE** — la fuente existe pero no pudo consultarse en esta sesión; NO generar datos de ella bajo ningún concepto
-
-**Regla dura:** Está prohibido generar datos con apariencia verificada de fuentes que no fueron consultadas en esta sesión. Si no hay acceso real, el dato se omite o se marca 🚫. Presentar un dato inventado como verificado es peor que no tener el dato.
-
----
-
-## STEP 0 — Verificar acceso a fuentes premium (EJECUTAR SIEMPRE PRIMERO)
-
-Antes de cualquier fase, verificar activamente el acceso a las fuentes que requieren conexión especial. Informar al designer el resultado.
-
-**Baymard Institute:**
-Intentar navegar `baymard.com/research` vía Chrome MCP.
-- ✅ Accesible → ejecutar protocolo Baymard completo en las fases correspondientes
-- 🚫 No accesible → informar al designer, usar NNGroup como sustituto, marcar `[SIN DATOS BAYMARD]` en el output
-
-**Mobbin MCP:**
-Verificar si el conector de Mobbin está activo en esta sesión.
-- ✅ Activo → usar MCP directamente para evidencia visual
-- 🚫 No disponible → usar fallback visual (App Store + Dribbble + case studies en Medium/UX Collective)
-
-Mostrar al designer antes de continuar:
-```
-🔍 Verificando acceso a fuentes premium...
-
-Baymard: [✅ Accesible / 🚫 No accesible — usaré NNGroup como sustituto]
-Mobbin MCP: [✅ Activo / 🚫 No disponible — usaré fallback visual]
-
-[Si todo OK]: Fuentes verificadas. Iniciando análisis.
-[Si hay falla]: [descripción de qué falta y cómo se cubrirá]
-```
+**Regla dura:** prohibido presentar como verificado algo no consultado en esta sesión. Una estimación marcada ⚠️ es útil; un dato inventado con apariencia ✅ destruye la credibilidad del análisis.
 
 ---
 
@@ -58,448 +31,465 @@ Mobbin MCP: [✅ Activo / 🚫 No disponible — usaré fallback visual]
 
 ---
 
-## 🟢 MODO MEJORA — S2 omitido
+## 🟢 MODO MEJORA — S2 mini-benchmark
 
 Si `tipo_proyecto` es `"mejora"`:
 
-```
-S2 está omitido en modo Mejora — no se requiere investigación de mercado.
+S2 no está omitido — ejecuta un **mini-benchmark** rápido focalizado en el componente/flujo específico que se mejora.
 
-¿Querés continuar con S3 (Necesidades de usuario)?
-Di "ejecutar S3" para continuar.
+```
+📊 Mini-benchmark para modo Mejora
+
+Voy a buscar cómo resuelven [feature/componente] los 3–4 referentes del sector
+y qué dicen Baymard y NNGroup sobre este patrón.
+Sin investigación de mercado completa — directo a lo que aplica.
+
+Arrancando en 30 segundos...
 ```
 
-Si el designer igualmente quiere ejecutarlo, ofrece el modo Feature Benchmark (🟡) adaptado a la mejora en cuestión.
+Ejecuta directamente con el contexto de S1. Sin preguntas adicionales salvo que el contexto de S1 sea insuficiente.
+
+**Fases del mini-benchmark:**
+1. Consulta NNGroup KB local por tags del componente/patrón
+2. Baymard: detectar Chrome MCP (mismo protocolo que PASO 0). PATH A1 si disponible, PATH A2 si no.
+3. WebSearch 3–4 referentes: cómo implementan este patrón
+4. Síntesis directa con el formato de output estructurado (ver más abajo)
+
+Output: `output_s2_mini.md` — mismo formato estructurado pero alcance reducido.
 
 ---
 
 ## 🟡 MODO FUNCIONALIDAD NUEVA — Feature Benchmark
 
-Si `tipo_proyecto` es `"funcionalidad_nueva"`, ejecuta este modo completo.
+Si `tipo_proyecto` es `"funcionalidad_nueva"`, ejecuta este modo.
 
-### 1. Verificar estado y cargar contexto
+---
 
-Lee `discovery_state.json`. Verifica que S1 esté completo. Extrae del packet S1:
-- Feature en scope (del HMW prioritizado)
-- Producto/app donde va la feature
+## 🔴 MODO PROYECTO NUEVO — Market Trends
+
+Si `tipo_proyecto` es `"proyecto_nuevo"`, ejecuta este modo (ver sección al final).
+
+---
+
+## PROTOCOLO COMÚN (aplica a todos los modos excepto donde se indica)
+
+### PASO 0 — Arranque automático
+
+Lee `discovery_state.json`. Extrae de S1:
+- Feature / flujo en scope
 - Plataformas target
 - Segmento de usuario
+- Geografía (mercado)
+- HMW prioritizados
 
-### 2. Solicitar datos faltantes
+**Arranca la investigación de inmediato.** No preguntes nada que pueda inferirse de S1.
 
-```
-Tengo de S1:
-- Feature: [nombre de la feature en scope]
-- Producto: [nombre del producto existente]
-- Plataforma: [plataforma]
-- Usuario target: [segmento]
-
-Para el benchmark necesito saber:
-1. APPS/WEBS DE REFERENCIA: ¿Hay competidores específicos que querés revisar? [lista o "buscar automáticamente"]
-2. GEOGRAFÍA: ¿En qué mercado se buscan las referencias? [ej. "LATAM", "global", "Brasil"]
-```
-
-Espera respuesta y luego ejecuta las fases.
-
----
-
-### 3. Ejecutar las fases del Feature Benchmark
-
-**Fase 1 — Scan de implementaciones competitivas**
-
-Busca con WebSearch: cómo implementan esta feature específica las 6–8 apps/webs más relevantes del sector.
-
-No analices la empresa completa — analiza solo la implementación de la feature en cuestión:
-- ¿Dónde vive en la navegación?
-- ¿Qué interacción usa el usuario?
-- ¿Qué datos muestra y en qué orden?
-- ¿Cómo se activa / descubre?
-
-Genera una tabla comparativa:
-
-| App/Web | Plataforma | Dónde vive | Interacción | Datos mostrados | Patrón |
-|---------|------------|------------|-------------|-----------------|--------|
-
-**Pausa de validación:** muestra la tabla y pregunta si hay otras apps que agregar antes de continuar.
-
----
-
-**Fase 1b — Pausa activa: capturas del designer**
-
-El agente NO puede acceder a apps nativas detrás de login. Antes de pedir capturas manuales, agotar primero las fuentes públicas disponibles. Solo escalar a intervención manual cuando:
-- La pantalla está detrás de login Y no hay referencia pública equivalente
-- Se necesita un flujo de interacción específico (no una captura estática)
-- La referencia pública encontrada tiene más de 18 meses de antigüedad
-
-Al terminar Fase 1, si hay capturas que genuinamente requieren intervención, genera la lista `screenshots_pendientes_designer` con estructura obligatoria:
+Si falta información crítica (sin la cual la búsqueda sería genérica e inútil), haz UNA pregunta con máximo 2 opciones:
 
 ```
-screenshots_pendientes_designer:
+Tengo de S1: [resumen de lo extraído]
 
-🔴 ALTA PRIORIDAD (bloquea el análisis — pedir en esta ronda):
-- COMPETIDOR: [nombre]
-  PANTALLA: [descripción exacta, ej. "checkout paso 2 — selección de dirección de envío"]
-  POR QUÉ IMPORTA: [qué decisión de diseño depende de esta captura]
-  ACCESO: [¿requiere cuenta? ¿de qué tipo?]
-
-🟡 MEDIA (enriquece el análisis — opcional):
-- [mismo formato]
-
-🟢 BAJA (nice to have — el designer decide):
-- [mismo formato]
+Una cosa antes de arrancar:
+[UNA pregunta específica con 2–3 opciones concretas]
 ```
 
-Pedir solo las de ALTA en la primera ronda. Las de MEDIA/BAJA son opcionales.
+Si no falta nada: detecta si Chrome MCP está disponible (intenta `navigate` a `https://baymard.com` — si responde sin error, Chrome MCP está activo). Guarda el resultado como `baymard_mode`: `"chrome"` o `"websearch"`. No informar al designer de este chequeo.
 
-El designer sube las capturas en el chat. El agente las analiza visualmente:
-- Identifica competidor, plataforma, elementos UI, jerarquía visual
-- Detecta problemas heurísticos en cada pantalla
-- Reconstruye el journey entre pantallas con evaluación por paso
-- Genera flowchart con fricción por paso (🟢/🟡/🔴)
-- Confirma el journey con el designer antes de continuar
-
-**Para web público:** el agente accede directamente vía Chrome MCP sin intervención del designer.
-
----
-
-**Fase 1d — Reseñas de App Store y Google Play**
-
-Las reseñas públicas de los competidores son una fuente directa de pain points reales de usuarios. Los reviews de 1-2 estrellas = oportunidades de diseño concretas.
-
-**Antes de ejecutar, preguntar al designer:**
+Anuncia y arranca:
 
 ```
-📱 ¿Querés que analice las reseñas de los competidores en App Store y Google Play?
+🔍 Iniciando S2 — Feature Benchmark / Market Trends
+Feature en scope: [nombre] · Plataforma: [plataforma] · Mercado: [geografía]
 
-Las páginas públicas muestran rating, distribución de estrellas y top reviews.
-Para mejores resultados necesito Chrome MCP activo (las tiendas usan JavaScript).
-
-[Opción A] ✅ Sí, usar Chrome MCP — extraigo reviews reales directamente de las tiendas
-[Opción B] 🔍 Sí, usar WebSearch — menos detalle, pero funciona sin Chrome
-[Opción C] ⏭ No por ahora — continuar sin reviews
-
-¿Cuál preferís?
-```
-
-**Si el designer elige Opción A (Chrome MCP):**
-
-Verificar que Chrome MCP esté activo. Si no lo está, informar y ofrecer Opción B como fallback:
-```
-⚠️ Chrome MCP no está conectado en esta sesión.
-¿Querés continuar con WebSearch (Opción B) o saltar esta fase?
-```
-
-Para cada app del benchmark que tenga versión móvil, navegar con Chrome MCP:
-- App Store: `https://apps.apple.com/us/app/[app-name]/id[app-id]`
-- Google Play: `https://play.google.com/store/apps/details?id=[package-id]`
-
-**Si el designer elige Opción B (WebSearch):**
-
-Buscar: `"[nombre app]" site:apps.apple.com` y `"[nombre app]" site:play.google.com` para obtener el rating y resumen visible en los resultados de búsqueda. Complementar con búsquedas de reviews en blogs/medios especializados.
-
-**Datos a extraer (A o B):**
-
-Por cada app analizada:
-
-| App | Plataforma | Rating | N° reviews | Pain points (1-2★) | Destacados (4-5★) | Confianza |
-|-----|------------|--------|------------|-------------------|-------------------|-----------|
-| [nombre] | iOS/Android | [X.X/5] | [N] | [temas frecuentes] | [temas frecuentes] | ✅/⚠️/🚫 |
-
-**Análisis por app** (para las 3–4 apps más relevantes del benchmark):
-
-```
-📱 [Nombre app] — [Rating]/5 · [N] reviews · [Plataforma]
-Fuente: [URL] · Fecha acceso: [fecha] · [✅ VERIFICADO / ⚠️ ESTIMADO]
-
-Pain points frecuentes (reviews negativos):
-→ [tema 1]: "[cita representativa de un review real]"
-→ [tema 2]: "[cita representativa]"
-→ [tema 3]: "[cita representativa]"
-
-Qué valoran (reviews positivos):
-→ [tema 1]: "[cita representativa]"
-→ [tema 2]: "[cita representativa]"
-
-Implicancia para [feature en scope]:
-[qué decisión de diseño surge de estos reviews · conectar con HMW de S1 si aplica]
-```
-
-**Reglas de la Fase 1d:**
-- Solo citar reviews reales encontrados — no inventar citas
-- Si los reviews no son accesibles o la app no tiene suficientes reseñas públicas: marcar 🚫 y documentar
-- Priorizar reviews recientes (últimos 12 meses) sobre ratings históricos
-- Si hay diferencia significativa entre rating iOS y Android, documentarla — puede indicar problemas de paridad de features
-
----
-
-**Fase 1c — Consultar base de conocimiento NNGroup**
-
-El agente consulta el archivo `references/nngroup_ecommerce_ux_knowledge_base.md` (NNGroup Ecommerce UX, 4th Ed., 500+ guidelines). Busca por tags relevantes al proyecto y extrae guidelines aplicables. Luego busca en `site:nngroup.com` vía WebSearch para encontrar actualizaciones más recientes. Si hay conflicto entre base local y web, prioriza el más reciente.
-
-Citación: `[NNGROUP: Vol.XX · sección · hallazgo]` o `[NNGROUP-WEB: título · fecha · URL]`
-
-Prioridad de fuentes: Baymard (benchmarks cuantitativos) > NNGroup (guidelines cualitativas) > Reseñas de app stores.
-
----
-
-**Fase 2 — Identificación de patrones**
-
-Clasifica las implementaciones encontradas:
-
-- **Patrón dominante** — lo que hace la mayoría (≥60%). Es la expectativa del usuario.
-- **Variación notable** — implementaciones que se desvían del dominante con intención clara.
-- **Patrón experimental** — solo 1–2 apps lo hacen, sin adopción masiva aún.
-
-Para cada patrón: nombre · descripción · quién lo usa · por qué funciona (o no).
-
----
-
-**Fase 3 — Buenas prácticas con fuente**
-
-Usar solo fuentes verificadas en STEP 0. Cada hallazgo lleva su nivel de confianza.
-
-**Baymard Institute** (`baymard.com`) — prioridad alta para features de ecommerce:
-- Solo si ✅ accesible en STEP 0: navegar vía Chrome MCP y extraer guidelines de las secciones relevantes
-- Si 🚫 no accesible: marcar `[SIN DATOS BAYMARD]` y saltar a NNGroup
-- Cita: `[BAYMARD ✅: nombre-guideline · sección · fecha-acceso]`
-
-**NNGroup** (`nngroup.com`) — siempre disponible vía WebSearch:
-- Buscar artículos sobre el tipo de feature y su contexto
-- Cita: `[NNGROUP ✅: título · fecha · URL]`
-
-**Apple HIG** (`developer.apple.com/design`) — si plataforma incluye iOS:
-- Cita: `[HIG ✅: componente · sección]`
-
-**Material Design 3** (`m3.material.io`) — si plataforma incluye Android:
-- Cita: `[M3 ✅: componente · sección]`
-
-**Mobbin** — solo si MCP ✅ activo. Si 🚫 no disponible, usar fallback: App Store screenshots + Dribbble + case studies en Medium/UX Collective (marcar ⚠️ COBERTURA PARCIAL).
-
-Al usar Mobbin (MCP o búsqueda), aplicar siempre el **protocolo de frescura**:
-- Buscar siempre el flujo más reciente disponible para la app — no el primero que aparezca
-- Anotar la fecha del flow capturado
-- Si la fecha es anterior al año en curso (2026): advertir explícitamente con `⚠️ FLOW DESACTUALIZADO — capturado en [año], pueden existir cambios no mapeados`
-- Si la fecha es desconocida o no visible: marcar `⚠️ FECHA DESCONOCIDA — validar manualmente que el flow sea vigente`
-- No silenciar la falta de fecha — es mejor avisar que asumir que es reciente
-
-Formato de hallazgo con fuente:
-```
-📌 [Fuente + nivel de confianza] · [Año]
-Hallazgo: "[cita o resumen del dato clave]"
-Implicancia para [nombre de la feature]: [qué significa esto para el diseño]
-```
-
-Agrupa hallazgos por tema (ej: "Organización del listado", "Filtros y ordenamiento", "Estados vacíos").
-
----
-
-**Fase 4 — Gap de oportunidad**
-
-Cruza los patrones encontrados (Fase 2) con las buenas prácticas (Fase 3):
-
-| Gap | Qué hacen los competidores | Qué dice la investigación | Oportunidad |
-|-----|---------------------------|--------------------------|-------------|
-
-Marca cada gap: oportunidad **alta / media / baja**.
-
-Conecta cada gap con los HMW de S1: ¿cuál de los HMW se resolvería con este gap?
-
----
-
-**Fase 5 — Evidencia visual**
-
-Para cada app/web del benchmark, busca referencias visuales públicas del flujo analizado.
-
-Fuentes a consultar en orden de prioridad:
-
-1. **Mobbin** — MCP si ✅ activo; si no, `site:mobbin.com "[nombre app]" "[feature/flujo]"` via WebSearch
-2. **UX Archive** — busca con: `site:uxarchive.com "[tipo de flujo]"` via WebSearch
-3. **Screenlane** — busca con: `site:screenlane.com "[feature]"` via WebSearch
-4. **App Store / Google Play** — las páginas públicas incluyen screenshots oficiales de la app
-5. **Dribbble / Behance** — para referencias de diseño del patrón (no del competidor específico)
-
-Para cada resultado encontrado, anota:
-
-| App | Flujo analizado | Fuente | Fecha flow | URL | Estado |
-|-----|----------------|--------|------------|-----|--------|
-| [nombre] | [flujo específico] | Mobbin / UX Archive / App Store / etc. | [año o "desconocida"] | [URL] | ✅ Vigente / ⚠️ Desactualizado / ⚠️ Fecha desconocida |
-
-**Regla de frescura para toda fuente visual:**
-- Flow del año en curso → ✅ Vigente
-- Flow de año anterior → ⚠️ DESACTUALIZADO — advertir: "capturado en [año], pueden existir cambios no mapeados"
-- Fecha no visible → ⚠️ FECHA DESCONOCIDA — advertir: "validar manualmente que el flow sea vigente"
-
-Siempre buscar el flow más reciente disponible para cada app — no el primero que aparezca en los resultados.
-
-**Reglas de la Fase 5:**
-- Solo incluir URLs que sean públicamente accesibles (sin login requerido)
-- Si un competidor requiere login para ver el flujo y no hay referencia pública disponible, marcarlo: `⚠️ Sin evidencia pública — requiere acceso a la app`
-- No inventar URLs — si no encontrás resultado verificable, omitir la fila y documentar la ausencia
-- Apps nativas que no tienen versión web son difíciles de capturar: priorizar Mobbin y UX Archive para esos casos
-- Máximo 2–3 referencias por competidor para mantener el output accionable
-
-Cierra la fase con:
-```
-📸 Evidencia visual — [N] referencias encontradas
-Apps con cobertura completa: [lista]
-Apps sin evidencia pública: [lista] — se recomienda captura manual
+Baymard: [artículos completos via cuenta del equipo · ó · snippets via WebSearch]
+Investigando en: Baymard · NNGroup · Competidores · App Store Reviews
+Entrego síntesis en unos minutos...
 ```
 
 ---
 
-### 4. Verificar calidad
+### PASO 1 — Investigación en 4 streams (el agente trabaja solo)
 
-- [ ] Al menos 5 apps/webs analizadas con datos reales.
-- [ ] Al menos 2 fuentes de buenas prácticas consultadas (Baymard Premium vía Chrome, NNGroup, HIG, M3).
-- [ ] Se ejecutó el protocolo Baymard vía Chrome (o se marcó `[SIN DATOS BAYMARD]` si no hay sesión).
-- [ ] Cada hallazgo de buenas prácticas tiene fuente + año.
-- [ ] Los patrones están clasificados (dominante / notable / experimental).
-- [ ] Cada gap conecta con un HMW de S1.
-- [ ] Datos no verificados marcados con `[NO VERIFICADO]`.
-- [ ] Evidencia visual: tabla con URLs verificadas o ausencia documentada.
-- [ ] Se preguntó al designer sobre análisis de reseñas (Fase 1d) y se ejecutó o documentó la decisión.
-- [ ] Reviews de App Store/Google Play: citas reales, no inventadas — fuente verificada o marcada 🚫.
+Ejecuta los 4 streams sin pedir permiso. El output del Paso 1 es interno — no lo muestres todavía, lo usas para sintetizar en el Paso 2.
 
-### 5. Guardar outputs
+---
 
-**a) Escribe `output_s2.md`** con todo el contenido.
+#### Stream A — Baymard Institute (KB local → Chrome MCP → WebSearch fallback)
+
+Baymard es la fuente cuantitativa más importante para ecommerce UX. El equipo tiene cuenta activa — usar Chrome MCP cuando está disponible para leer artículos completos.
+
+---
+
+**PATH A0 — KB local (siempre primero, es instantáneo):**
+
+Tenés 3 KBs offline. Seleccioná la(s) más relevante(s) según la bandera en scope:
+
+| Vertical | Banderas | KB a usar | Archivo |
+|----------|----------|-----------|---------|
+| Groceries | Jumbo (CL/CO/AR), Santa Isabel (CL), Disco (AR), Vea (AR), Prezunic (BR), Gbarbosa (BR), Giga (BR), Wong (PE), Metro (PE/CO), The Fresh Market (US) | Groceries | `references/baymard_ecommerce_ux_kb.md` |
+| Home Improvement | Easy (CL/CO/AR) | Home & Hardware | `references/baymard_home_hardware_ux_kb.md` |
+| Department Store | Paris (CL) | Department Store | `references/baymard_dept_store_ux_kb.md` |
+| Sin bandera específica | — | Todas las que apliquen | lee las 2–3 relevantes |
+
+**Groceries KB:** 434 guidelines, Groceries Industry Collection. Secciones: Grocery Essentials, Cart & Checkout, On-Site Search, Product Lists & Filtering, Homepage & Category Navigation, Product Page, Accounts & Self-Service, Site-Wide.
+
+**Home & Hardware KB:** 530 guidelines, Home & Hardware Collection (`r69njx`). Secciones: Home & Hardware Essentials, Product Page, Product Lists & Filtering, Search, Homepage & Category Navigation, Cart & Checkout, Accounts & Self-Service, Site-Wide.
+
+Busca las secciones relevantes al tipo de feature/flujo en scope. Extrae las 4–8 guidelines más aplicables. Por cada una:
+- Fuente exacta: `[BAYMARD-KB: #ID · sección · título]`
+- El hallazgo en 1–2 frases
+- Implicancia directa para la feature en scope
+
+**Citación:** `[BAYMARD-KB ✅: "título de guideline" · #ID · sección]`
+
+Este paso no reemplaza a PATH A1/A2 — los enriquece. Continúa con el path que corresponda para obtener contenido extendido y datos cuantitativos adicionales.
+
+---
+
+**PATH A1 — Chrome MCP disponible (`baymard_mode = "chrome"`)**
+
+Navega con Chrome MCP a `https://baymard.com`. El equipo tiene sesión activa — no es necesario hacer login.
+
+Búsquedas en Baymard:
+1. Usa el buscador interno: `https://baymard.com/research?q=[feature+o+flujo]`
+2. Para cada artículo relevante encontrado: navegar a la URL del artículo y extraer contenido completo
+3. Priorizar artículos con: datos cuantitativos ("X% of sites"), guidelines numeradas, estudios de usabilidad
+4. Extraer de cada artículo: título · sección · guidelines clave · datos cuantitativos · año
+
+Artículos objetivo por tipo de feature (navegar directamente si aplica):
+- Checkout → `baymard.com/research/checkout-usability`
+- Search → `baymard.com/research/ecommerce-search`
+- Product page → `baymard.com/research/product-page-ux`
+- Cart → `baymard.com/research/shopping-cart-abandonment`
+- Mobile → `baymard.com/research/mobile-ecommerce`
+- Homepage/Nav → `baymard.com/research/homepage-and-category-ux`
+- Filters → `baymard.com/research/faceted-navigation`
+
+Por cada hallazgo extraído de artículo completo:
+- Confianza: `✅ VERIFICADO (artículo completo)`
+- Citación: `[BAYMARD ✅: "título exacto" · sección · año · URL]`
+
+Si Chrome MCP falla a mitad del proceso (timeout, error de navegación) → cambiar `baymard_mode` a `"websearch"` y continuar con PATH A2 sin interrumpir el flujo.
+
+---
+
+**PATH A2 — WebSearch fallback (`baymard_mode = "websearch"`)**
+
+Chrome MCP no disponible. Usar WebSearch para obtener snippets públicos de Baymard.
+
+Ejecuta estas búsquedas en orden:
+
+1. `site:baymard.com [nombre de la feature o flujo]`
+2. `site:baymard.com [tipo de pantalla: checkout / cart / product page / search / etc.]`
+3. `baymard.com "[patrón UI específico]" research` (sin `site:` para capturar menciones en otros artículos)
+4. Si el flujo es mobile: `baymard.com mobile ecommerce [feature]`
+
+Por cada hallazgo encontrado, registrar:
+- Fuente: título + URL + año visible en snippet
+- Dato cuantitativo si aparece en el snippet
+- Guideline concreta si es visible
+- Confianza: `✅ VERIFICADO` si hay URL real; `⚠️ ESTIMADO` si es inferencia del snippet
+
+Citación: `[BAYMARD ✅: "título del artículo" · snippet · año · URL]`
+
+Si WebSearch no retorna resultados relevantes de Baymard → documentar: `[BAYMARD: sin resultados para "[query]" — ver NNGroup como sustituto]`
+
+---
+
+**Nota:** En ambos paths, si Chrome MCP estaba disponible pero el equipo no tiene sesión activa en Baymard (página de login visible), cambiar automáticamente a PATH A2. No solicitar credenciales al designer.
+
+---
+
+#### Stream B — NNGroup (KB local + WebSearch)
+
+**Paso B1 — KB local (siempre primero, es instantáneo):**
+
+Lee `references/nngroup_ecommerce_ux_knowledge_base.md`. Busca por tags relevantes al tipo de feature/flujo:
+- Homepage, navigation, product-page, cart, checkout, search, filters, mobile, onboarding, account, etc.
+
+Extrae las 4–8 guidelines más aplicables. Por cada una:
+- Fuente exacta: `[NNGROUP: Vol.XX · sección · guideline]`
+- El hallazgo en 1–2 frases
+- Implicancia directa para la feature en scope
+
+**Paso B2 — WebSearch para actualizaciones recientes:**
+
+Busca: `site:nngroup.com [feature o patrón]` y `site:nngroup.com [tipo de flujo] mobile` (si aplica).
+
+Prioriza artículos de los últimos 24 meses. Si el resultado de WebSearch contradice el KB local → priorizar el más reciente y documentar la diferencia.
+
+Citación: `[NNGROUP-WEB ✅: "título" · fecha · URL]`
+
+---
+
+#### Stream C — Benchmark competitivo (vía WebSearch)
+
+Para el modo Feature Benchmark: analiza 5–7 apps/webs del sector.
+Para el modo Market Trends: analiza 4–6 competidores directos + 2 referentes globales.
+
+**Protocolo de búsqueda competitiva:**
+
+Ejecuta sin esperar validación del designer. Si S1 menciona competidores específicos, arrancar por ellos. Si no:
+
+- Grocery/supermercado: Mercado Libre, Rappi, iFood, Cornershop, Instacart, Walmart, Amazon Fresh
+- Retail fashion: ASOS, Zara, H&M, Shein
+- Otros: buscar con `"[categoría] app best UX [año]"` en WebSearch
+
+**Por cada competidor analizar la feature específica (no la empresa completa):**
+
+| App/Web | Plataforma | Cómo implementan la feature | Patrón UI | Calidad percibida | Fuente |
+|---------|------------|-----------------------------|-----------|-------------------|--------|
+
+**Clasificación de patrones:**
+- **Patrón dominante** — lo que hace ≥60% → expectativa del usuario
+- **Variación notable** — desviación con intención clara
+- **Patrón experimental** — solo 1–2 lo hacen, sin adopción masiva
+
+**App Store reviews (automático, no opcional):**
+
+Para las 3–4 apps más relevantes, buscar con WebSearch:
+- `"[nombre app]" reviews [feature/flujo] problems`
+- `"[nombre app]" app store complaints [feature]`
+- `site:trustpilot.com [nombre empresa]` si aplica
+
+Extraer: pain points más frecuentes (reviews 1–2★) + qué valoran (reviews 4–5★).
+
+Citar reviews reales encontrados. Si no hay reviews verificables → marcar 🚫 y documentar.
+
+---
+
+#### Stream D — Mobile performance (si plataforma incluye mobile)
+
+Si la plataforma incluye `app_ios`, `app_android`, `web_mobile`:
+
+Buscar con WebSearch:
+- `site:web.dev [feature o patrón] mobile performance`
+- `site:thinkwithgoogle.com [categoría] mobile conversion`
+- `"Core Web Vitals" [tipo de pantalla] ecommerce`
+
+Extraer métricas de referencia de la industria (tasas de conversión, tiempos de carga, abandono por velocidad, etc.).
+
+Citación: `[THINK-GOOGLE ✅: "título" · fecha · URL]` o `[WEB-DEV ✅: "título" · fecha · URL]`
+
+---
+
+### PASO 2 — Síntesis estructurada (OUTPUT PRINCIPAL)
+
+Con todo lo investigado en el Paso 1, produce el output con el formato exacto que sigue. **Síntesis primero — el equipo no quiere muros de data cruda.**
+
+```
+═══════════════════════════════════════════════════════
+📋 S2 — BENCHMARK RESEARCH
+[Feature/Flujo] · [Modo: Feature Benchmark / Market Trends / Mini]
+[Marca] · [Plataforma] · [Fecha]
+═══════════════════════════════════════════════════════
+
+RESUMEN
+[3–5 líneas: qué encontramos, cuál es el patrón dominante del mercado,
+qué oportunidad concreta hay para Cencosud/Whitelabel]
+
+ALCANCE
+· Feature: [nombre]
+· Apps/webs analizadas: [N] ([lista])
+· Fuentes consultadas: [Baymard · NNGroup · Competidores · App Store · Think with Google]
+· Cobertura: [alto / medio / bajo] — [explicar si bajo]
+
+───────────────────────────────────────────────────────
+HALLAZGOS POR FUENTE
+───────────────────────────────────────────────────────
+
+📊 Baymard Institute
+→ [hallazgo 1] — [BAYMARD ✅: citación]
+→ [hallazgo 2] — [BAYMARD ✅: citación]
+[Si no hubo resultados: "Sin datos Baymard para este tema — ver NNGroup"]
+Implicancia para [feature]: [qué significa para el diseño en 2 líneas]
+
+📘 NNGroup
+→ [hallazgo 1] — [NNGROUP: Vol.XX · sección]
+→ [hallazgo 2] — [NNGROUP-WEB ✅: título · fecha]
+Implicancia para [feature]: [qué significa para el diseño]
+
+🏆 Benchmark competitivo
+Patrón dominante: [descripción — quién lo usa]
+Variaciones notables: [descripción]
+Gap detectado: [qué no hace nadie bien, o qué hace el mejor que los demás no]
+Tabla: [tabla comparativa de implementaciones]
+
+📱 App Store / Reviews
+Pain points más frecuentes en competidores:
+→ [tema 1]: "[cita real de review]" — [app] ([N★])
+→ [tema 2]: "[cita real]"
+Lo que más valoran:
+→ [tema 1]: "[cita]"
+Implicancia: [qué aprendemos para nuestra feature]
+
+📈 Mobile performance [si aplica]
+→ [benchmark de conversión/velocidad del sector]
+→ [dato de Think with Google o web.dev]
+
+───────────────────────────────────────────────────────
+MEJORES PRÁCTICAS CONSOLIDADAS
+───────────────────────────────────────────────────────
+(síntesis de todas las fuentes, priorizadas por impacto)
+
+1. [práctica] — [fuentes que la respaldan]
+2. [práctica] — [fuentes]
+3. [práctica] — [fuentes]
+4. [práctica] — [fuentes]
+5. [práctica] — [fuentes]
+
+───────────────────────────────────────────────────────
+IMPLICANCIAS PARA PRISMA / WHITELABEL
+───────────────────────────────────────────────────────
+
+→ Componentes afectados: [nombres Prisma si aplican]
+→ Patrón que aplica a todas las banderas: [descripción]
+→ Adaptaciones por bandera / mercado: [si las hay]
+→ Gaps de componentes Prisma detectados: [si el patrón requiere algo que no existe]
+→ Oportunidad de diferenciación: [qué podría hacer Cencosud mejor que la competencia]
+
+───────────────────────────────────────────────────────
+GAPS DE OPORTUNIDAD (conectados con HMW de S1)
+───────────────────────────────────────────────────────
+
+| Gap | Qué hace la competencia | Qué dice la investigación | Oportunidad | HMW de S1 |
+|-----|------------------------|--------------------------|-------------|-----------|
+| [gap 1] | [estado del mercado] | [guideline] | Alta/Media/Baja | [HMW] |
+
+───────────────────────────────────────────────────────
+FUENTES EN ESTA SESIÓN
+───────────────────────────────────────────────────────
+Verificadas ✅: [lista con URLs]
+Sin acceso 🚫: [lista o "ninguna"]
+Estimadas ⚠️: [N o "ninguna"]
+```
+
+---
+
+### PASO 3 — Evidencia visual (simplificado, post-síntesis)
+
+Después de entregar la síntesis, busca referencias visuales para las 3–4 implementaciones más relevantes.
+
+**Buscar en este orden:**
+1. `site:mobbin.com "[nombre app]" [feature]` via WebSearch
+2. `site:uxarchive.com [flujo]` via WebSearch
+3. App Store screenshots: la página pública del producto incluye capturas
+4. `site:screenlane.com [feature]` via WebSearch
+
+Tabla resultante:
+
+| App | Flujo/pantalla | Fuente | Año | URL | Estado |
+|-----|----------------|--------|-----|-----|--------|
+| [nombre] | [flujo] | Mobbin / App Store / etc. | [año] | [URL] | ✅ / ⚠️ desactualizado |
+
+Si hay capturas que genuinamente requieren acceso a la app (detrás de login, sin referencia pública equivalente), listar como:
+```
+📸 Capturas opcionales para enriquecer el análisis:
+· [App] — [pantalla específica] — [por qué aportaría]
+```
+
+No bloquear el análisis esperando estas capturas. Son opcionales.
+
+---
+
+### PASO 4 — Verificar calidad
+
+- [ ] Baymard consultado vía WebSearch (o ausencia documentada)
+- [ ] NNGroup KB local consultado — al menos 3 guidelines extraídas
+- [ ] Al menos 5 apps/webs analizadas con datos verificados
+- [ ] App Store reviews: citas reales o 🚫 documentado
+- [ ] Síntesis entregada con formato completo (Resumen → Hallazgos → Mejores Prácticas → Implicancias)
+- [ ] Implicancias para Prisma/WL incluidas
+- [ ] Gaps conectados con HMW de S1
+- [ ] Datos no verificados marcados ⚠️ o 🚫
+- [ ] Tabla de evidencia visual o ausencia documentada
+
+---
+
+### PASO 5 — Guardar outputs
+
+**a) Escribe `output_s2.md`** con el contenido completo de la síntesis (Paso 2) + tabla de evidencia visual (Paso 3).
 
 **b) Actualiza `discovery_state.json`**:
 - `estado.s2` → `"completo"`
 - `packets.s2` → context packet JSON (ver schema en `references/s2-full.md`)
 - `outputs.s2` → `"output_s2.md"`
 
-### 6. Confirmar y proponer siguiente paso
+---
+
+### PASO 6 — Cierre y propuesta de siguiente paso
 
 ```
-✅ S2 completado (Feature Benchmark) — output_s2.md generado
+✅ S2 completado — output_s2.md generado
 
-Resumen:
-- Apps/webs analizadas: [N]
-- Patrón dominante: [nombre]
-- Gaps de oportunidad: [N] ([X] alto · [Y] medio · [Z] bajo)
-- Referencias visuales: [N] URLs encontradas
+Resumen de cobertura:
+· Apps/webs analizadas: [N]
+· Fuentes verificadas ✅: [lista]
+· Fuentes sin acceso 🚫: [lista o "ninguna"]
+· Gaps de oportunidad: [N] ([X] alto · [Y] medio)
+· Mejores prácticas consolidadas: [N]
 
-Fuentes en esta sesión:
-- Verificadas ✅: [lista]
-- Sin acceso 🚫: [lista o "ninguna"]
-- Hallazgos estimados ⚠️: [N o "ninguno"]
-
-Siguiente paso: S3 — Necesidades de usuario
+¿Querés profundizar en algún hallazgo o seguimos con S3?
 Di "ejecutar S3" para continuar.
 ```
 
 ---
 
-## 🔴 MODO PROYECTO NUEVO — Market Trends (comportamiento original)
+## 🔴 MODO PROYECTO NUEVO — Market Trends (fases adicionales)
 
-Si `tipo_proyecto` es `"proyecto_nuevo"`, ejecuta el proceso completo de investigación de mercado:
+El modo Proyecto Nuevo ejecuta todo el protocolo común (PASOS 0–6) más estas fases adicionales:
 
-### 1. Verificar estado y recopilar inputs
+### Fases adicionales para Proyecto Nuevo
 
-Lee `discovery_state.json`. Verifica que S1 esté completo. Solicita:
+**Fase extra A — TAM/SAM/SOM**
 
-```
-Tengo de S1:
-- Visión: [extraído de packets.s1.vision]
-- Segmento: [extraído de packets.s1.segmento_objetivo]
-- HMW prioritizados: [extraído de packets.s1.hmw_prioritizados]
+Busca con WebSearch: reportes de mercado para la categoría del producto en las geografías de S1.
+- `"[categoría] market size [geografía] [año]" site:statista.com` o fuentes similares
+- `"[categoría] ecommerce [país] crecimiento 2025 2026"`
 
-Datos adicionales para la investigación:
-1. CATEGORÍA DEL PRODUCTO: [ej. "app de supermercado B2C para LATAM"]
-2. COMPETIDORES CONOCIDOS: [lista o "ninguno identificado"]
-3. GEOGRAFÍAS OBJETIVO: [ej. "Brasil, Colombia, Chile"]
-4. PLATAFORMAS A ANALIZAR: [app iOS · app Android · web desktop · web mobile · todas]
-5. DOCUMENTOS INTERNOS: [URLs con research previo, o "ninguno"]
-6. NUESTRO PRODUCTO: [descripción breve, o "en definición"]
-7. PERÍODO DE TENDENCIAS: [default: "últimos 18 meses"]
-```
+Calcula: TAM → SAM (geografías de S1) → SOM (12m y 24m con supuestos explícitos).
+Formato: `TAM: $X MM · SAM: $X MM · SOM 12m: $X MM · CAGR: X%`
 
-### 2. Ejecutar las fases completas
+Marcar todo con `⚠️ ESTIMADO` si no hay fuente verificada. No inventar cifras.
 
-**Fase 0 — TAM/SAM/SOM**
-Busca reportes de mercado. Calcula TAM → SAM (por geografías de S1) → SOM (12m y 24m).
-Formato: `TAM: $X MM · SAM: $X MM · SOM 12m: $X MM · Crecimiento: X% CAGR`
+**Fase extra B — Tendencias del sector**
 
-**Fase 1 — Panorama competitivo**
-Busca en App Store, Google Play, Product Hunt, web. Ratings y reseñas en stores.
-**Pausa de validación:** confirmar listado con el designer.
+Clasifica en 3 horizontes:
+- **H1 (0–12m):** lo que está pasando ahora (basado en lanzamientos recientes, WebSearch del año en curso)
+- **H2 (1–3a):** lo que viene (basado en anuncios, patentes, beta features)
+- **H3 (3+a):** lo transformacional (AI, VR, cambios regulatorios, demografía)
 
-**Fase 2 — Benchmark por competidor (máx. 4)**
-Para cada uno: landing, onboarding hasta muro de registro, pricing, Mobbin (si MCP ✅).
-Genera lista `screenshots_pendientes_designer` con prioridad y justificación (mismo formato que Fase 1b del modo Feature Benchmark). Solo escalar a manual cuando no hay alternativa pública disponible.
+Cada tendencia: nombre · descripción · evidencia · impacto en el producto · fuente.
 
-**Fase 3 — Evaluación heurística**
-Nielsen: 🟢 3pts / 🟡 2pts / 🔴 1pt.
-Tabla: Competidor | Plataforma | H1–H10 | Total /30.
-Nuestro producto en última fila (real o `[PROYECTADO]`).
+**Fase extra C — Evaluación heurística**
 
-**Fase 4 — Tendencias**
-H1 (0–12m) · H2 (1–3a) · H3 (3+a).
+Para los 4 competidores más relevantes, tabla Nielsen:
+- 🟢 3pts · 🟡 2pts · 🔴 1pt por heurística
+- Tabla: Competidor | H1–H10 | Total /30
+- Nuestro producto en última fila (real o `[PROYECTADO]`)
 
-**Fase 5 — Buenas prácticas con fuente**
-Igual que Fase 3 del Feature Benchmark — Baymard Premium (vía Chrome MCP), NNGroup, HIG, M3 según categoría.
-
-**Fase 6 — Gaps + validación de HMW**
-Gaps de oportunidad + veredicto por HMW: `CONFIRMADO / REFUTADO / PARCIAL / SIN EVIDENCIA`.
-
-**Fase 7 — Evidencia visual**
-
-Para cada competidor del benchmark (Fase 2), busca referencias visuales públicas.
-
-Fuentes a consultar en orden de prioridad:
-
-1. **Mobbin** — MCP si ✅ activo; si no, `site:mobbin.com "[nombre app]"` via WebSearch
-2. **UX Archive** — `site:uxarchive.com "[flujo]"` via WebSearch
-3. **Screenlane** — `site:screenlane.com "[feature]"` via WebSearch
-4. **App Store / Google Play** — screenshots oficiales de la página pública del producto
-5. **Dribbble / Behance** — referencias del patrón o categoría
-
-Tabla de evidencia:
-
-| Competidor | Flujo/pantalla | Fuente | Fecha flow | URL | Estado |
-|------------|---------------|--------|------------|-----|--------|
-| [nombre] | [flujo] | Mobbin / UX Archive / App Store / etc. | [año o "desconocida"] | [URL] | ✅ Vigente / ⚠️ Desactualizado / ⚠️ Fecha desconocida |
-
-**Reglas:**
-- Solo URLs públicamente accesibles (sin login)
-- Ausencia documentada: `⚠️ Sin evidencia pública — captura manual recomendada`
-- No inventar URLs — omitir si no hay resultado verificable
-- Máximo 3 referencias por competidor
-- **Frescura:** buscar siempre el flow más reciente, no el primero que aparezca. Flow anterior al año en curso → advertir `⚠️ DESACTUALIZADO`. Fecha no visible → advertir `⚠️ FECHA DESCONOCIDA`
-
-Cierra con:
-```
-📸 Evidencia visual — [N] referencias encontradas
-Cobertura completa: [lista de competidores]
-Sin evidencia pública: [lista] — captura manual recomendada
-```
-
-### 3. Guardar y confirmar
-
-Misma estructura que Feature Benchmark. Output: `output_s2.md`.
-
-Resumen final incluye: apps analizadas · patrón dominante · gaps · hallazgos Baymard/NNGroup · referencias visuales encontradas · reporte de fuentes (✅ verificadas / 🚫 sin acceso / ⚠️ estimadas).
+Agrega estas fases al output_s2.md como secciones adicionales después de Implicancias Prisma/WL.
 
 ---
 
-## Export a Miro
+## Export a Miro (si MCP conectado)
 
-Al finalizar S2, si el MCP de Miro está autorizado, exportar automáticamente:
-1. **Tabla de benchmark** vía `table_create`
-2. **Doc por competidor** vía `doc_create` (análisis heurístico detallado)
-3. **Flowchart de journey** vía `diagram_create` (tipo `flowchart`, colores por fricción)
-4. **Doc de gaps + tendencias** vía `doc_create`
+Al finalizar S2, si el MCP de Miro está autorizado:
+1. Tabla de benchmark → `table_create`
+2. Doc por competidor → `doc_create`
+3. Doc de síntesis (Mejores Prácticas + Implicancias) → `doc_create`
+4. (Proyecto nuevo) Tendencias H1/H2/H3 → `doc_create`
 
-Si Miro no está conectado: informar al designer y generar output Markdown.
+Si Miro no está conectado: omitir en silencio. No preguntar al designer.
 
 ---
 
 ## Reglas generales
 
-- **Anti-alucinación (regla #1):** Todo dato lleva su nivel de confianza (✅/⚠️/🚫). Está prohibido presentar como verificado algo que no fue consultado directamente en esta sesión. Una estimación marcada como ⚠️ es útil; un dato inventado presentado como ✅ destruye la credibilidad del análisis.
-- Usa WebSearch activamente para todas las búsquedas de texto y datos públicos.
-- Cita con formato `[BAYMARD ✅: guideline · sección · fecha]` o `[NNGROUP ✅: título · fecha · URL]`.
-- Si Baymard no tiene artículo directamente relevante, buscar en NNGroup y documentar la ausencia con `[SIN DATOS BAYMARD]`.
-- Evidencia visual: solo incluir URLs verificadas. Una URL rota o inventada es peor que declarar la ausencia.
-- Antes de pedir intervención manual al designer, agotar siempre las fuentes públicas disponibles.
+- **Arranque automático.** La investigación empieza con lo que hay en S1. Una pregunta al máximo antes de comenzar.
+- **Síntesis primero.** El output principal es el bloque estructurado (Paso 2), no los datos crudos.
+- **Baymard siempre vía WebSearch.** No depender de Chrome MCP. Si `site:baymard.com [query]` no retorna nada útil → documentar y seguir.
+- **NNGroup KB local siempre.** Es instantáneo y tiene 500+ guidelines. Consultarlo antes de buscar en web.
+- **No inventar.** Estimaciones marcadas ⚠️ son válidas. Datos inventados con apariencia ✅ no.
+- **No esperar capturas.** Las capturas manuales del designer son opcionales. El análisis no se bloquea por ellas.
+- **Implicancias Prisma/WL son obligatorias.** Todo S2 termina con un bloque de implicancias para el sistema de diseño y las banderas. Esto es lo que el equipo más necesita.

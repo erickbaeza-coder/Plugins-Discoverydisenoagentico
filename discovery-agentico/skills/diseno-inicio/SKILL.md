@@ -7,7 +7,7 @@ description: >
   o cualquier variante que indique querer comenzar o retomar el proceso de Diseño agéntico DS1–DS3.
   Esta skill es el punto de entrada al proceso de diseño que sigue al Discovery agéntico (S1–S6).
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -15,7 +15,10 @@ Eres el orquestador del proceso de Diseño agéntico. Tu trabajo es guiar al Pro
 
 ## Proceso de diseño
 
+El flujo se adapta según el modo del Discovery:
+
 ```
+🔴 PROYECTO NUEVO — Flujo completo:
 PDR (output de S6)
   ↓
 DS1 — Wireframe Brief & Viabilidad
@@ -26,7 +29,17 @@ DS2 — Wireframe Generator
   ↓
 DS3 — Design Directions
   · 3 opciones visuales del flujo completo · Designer elige una · Prompts listos para Figma Make
+
+🟢 MEJORA  /  🟡 FUNCIONALIDAD NUEVA — Flujo corto:
+PDR / Feature Brief (output de S6)
+  ↓
+DS3 directo — Design Directions
+  · DS1 y DS2 se omiten (el flujo es conocido o acotado)
+  · DS3 trabaja con el Feature Brief o PDR acotado directamente
+  · Genera 3 opciones visuales + prompts Figma Make
 ```
+
+**Regla de routing automático:** si `discovery_state.json → tipo_proyecto` es `"mejora"` o `"funcionalidad_nueva"`, ir directo a DS3. DS1 y DS2 quedan disponibles si el designer los quiere ejecutar manualmente.
 
 ## Al activarse
 
@@ -89,7 +102,7 @@ Este proceso convierte tu PDR en wireframes validados y prompts listos para Figm
 Antes de empezar necesito algunos datos:
 
 1. ¿Dónde está el PDR? [nombre del archivo, ej. "PDR_Prezunic_v1.0.md" — o "usar discovery_state.json"]
-2. MARCA: [Prisma | Disco | Jumbo | Metro | Prezunic | The Fresh Market]
+2. MARCA: [Jumbo | Santa Isabel | Disco | Vea | Prezunic | Gbarbosa | Giga | Wong | Metro | The Fresh Market | Easy | Paris | Prisma]
 3. TIPO DE INTERFAZ: [detectado del discovery_state.json — o preguntar: app · web · ambos]
    → app: usará Prisma-Components + tokens Prisma
    → web: usará Web-Radix-Comopnents + Radix Tokens Foundation
@@ -135,15 +148,32 @@ Léelo y muestra el panel de estado.
 # Diseño: [proyecto] · [marca] · [app/web/ambos] · [plataformas separadas por coma]
 
 Estado del proceso:
-⬜ DS1 — Wireframe Brief & Viabilidad     [pendiente/en progreso/completo]
-⬜ DS2 — Wireframe Generator              [pendiente/en progreso/completo]
-⬜ DS3 — Design Directions + Figma Make   [pendiente/en progreso/completo]
+⬜/⊘ DS1 — Wireframe Brief & Viabilidad     [pendiente/en progreso/completo/omitido]
+⬜/⊘ DS2 — Wireframe Generator              [pendiente/en progreso/completo/omitido]
+⬜    DS3 — Design Directions + Figma Make   [pendiente/en progreso/completo]
 
 Siguiente paso: [skill pendiente]
 ```
 
+Para modos Mejora/Funcionalidad nueva, DS1 y DS2 muestran `⊘ omitido`.
+
 ### Paso 3 — Indicar siguiente acción
 
+Lee `discovery_state.json → tipo_proyecto` para determinar el routing:
+
+**Modo 🟢 Mejora o 🟡 Funcionalidad nueva:**
+- DS1 y DS2 se omiten por defecto.
+- Informar al designer:
+  ```
+  Modo [Mejora / Funcionalidad nueva] detectado.
+  Podemos ir directo a DS3 — no necesitás wireframear desde cero.
+  Di "ejecutar DS3" para generar las 3 opciones de diseño y prompts de Figma Make.
+  
+  (Si querés igual pasar por DS1 o DS2, podés decirlo.)
+  ```
+- Marcar `design_state.json → estado.ds1` y `estado.ds2` como `"omitido"`.
+
+**Modo 🔴 Proyecto nuevo (o DS1/DS2 ya ejecutados):**
 - **DS1 pendiente** → "Di `ejecutar DS1` para generar el brief de wireframe."
 - **DS1 completo, DS2 pendiente** → "Di `ejecutar DS2` para generar los wireframes HTML navegables."
 - **DS2 completo, DS3 pendiente** → "Di `ejecutar DS3` para ver las 3 opciones de diseño y generar los prompts de Figma Make."

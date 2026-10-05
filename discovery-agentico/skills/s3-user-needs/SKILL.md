@@ -6,7 +6,7 @@ description: >
   "analizar entrevistas", "analizar surveys", "pain points"
   o cualquier variante que indique querer ejecutar el tercer paso del Discovery agéntico.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
@@ -23,13 +23,15 @@ Lee el archivo de referencia completo de esta skill cuando lo necesites: `refere
 
 Lee `tipo_proyecto` de `discovery_state.json` al inicio:
 
-| tipo_proyecto | Foco de S3 |
-|---|---|
-| `mejora` | Solo fricciones del flujo específico. Sin personas nuevas — usa las existentes del producto. Framework: Hypothesis Matrix. Output reducido. |
-| `funcionalidad_nueva` | Necesidades del usuario target para esta feature. Personas ajustadas al scope. Framework elegido según datos. |
-| `proyecto_nuevo` | Síntesis completa. Todas las personas, todos los JTBDs, framework completo, Gap Analysis. |
+| tipo_proyecto | Foco de S3 | S4 |
+|---|---|---|
+| `mejora` | Solo fricciones del flujo específico. Sin personas nuevas — usa las existentes. Framework: Hypothesis Matrix. Output reducido. | Separado |
+| `funcionalidad_nueva` | **S3 + S4 fusionados en un solo paso.** Necesidades del usuario + Journey Map del flujo nuevo, todo en una ejecución. | Fusionado en S3 |
+| `proyecto_nuevo` | Síntesis completa. Todas las personas, todos los JTBDs, framework completo, Gap Analysis. | Separado |
 
 En modo `mejora`: S2 puede no tener packet — está bien, trabaja solo con S1 y los datos de usuario provistos.
+
+**En modo `funcionalidad_nueva` (S3+S4 fusionados):** después de completar las 6 fases de S3, ejecutar automáticamente las fases de S4 (User Journey) sin solicitar confirmación adicional. Generar un solo output unificado `output_s3_s4.md` y actualizar ambos estados en `discovery_state.json`.
 
 ## Al activarse
 
@@ -118,6 +120,8 @@ Criterio: 🔴 Crítico = intensidad alta + mercado no lo resuelve bien + conect
 
 ### 5. Guardar outputs
 
+**Si modo es `mejora` o `proyecto_nuevo`:**
+
 **a) Escribe `output_s3.md`** con mapa de necesidades, pain points priorizados, verbatims clave, validación cruzada y recomendaciones.
 
 **b) Escribe `gap-analysis.md`** con la tabla de Gap Analysis completa.
@@ -127,8 +131,24 @@ Criterio: 🔴 Crítico = intensidad alta + mercado no lo resuelve bien + conect
 - `packets.s3` → context packet JSON (ver schema en `references/s3-full.md`)
 - `outputs.s3` → `"output_s3.md"`
 
+---
+
+**Si modo es `funcionalidad_nueva` (S3+S4 fusionados):**
+
+Continúa automáticamente con el Journey Map (S4) sin preguntar. Incluye en `output_s3_s4.md`:
+- Todo el contenido de S3 (mapa de necesidades, clusters, Gap Analysis)
+- Journey Map completo del nuevo flujo con MOTs y fricciones (contenido de S4)
+- Storyboard por persona activa
+
+Actualiza `discovery_state.json`:
+- `estado.s3` → `"completo"`
+- `estado.s4` → `"completo"` (fusionado)
+- `packets.s3` y `packets.s4` → context packets correspondientes
+- `outputs.s3` y `outputs.s4` → `"output_s3_s4.md"`
+
 ### 6. Confirmar y proponer siguiente paso
 
+**Si modo `mejora` o `proyecto_nuevo`:**
 ```
 ✅ S3 completado — outputs guardados en output_s3.md y gap-analysis.md
 
@@ -141,6 +161,21 @@ Resumen:
 
 Siguiente paso: S4 — User Journey
 Di "ejecutar S4" para continuar.
+```
+
+**Si modo `funcionalidad_nueva` (S3+S4 fusionados):**
+```
+✅ S3 + S4 completados en un solo paso — output_s3_s4.md generado
+
+Resumen:
+- Nivel de confianza: [alto/medio/bajo]
+- Necesidades críticas: [N]
+- MOTs identificados: [N]
+- Fricciones críticas: [N]
+- Gaps: [N] críticos · [N] relevantes
+
+Siguiente paso: S5 — Valor de negocio (opcional para este modo)
+Di "ejecutar S5" si querés el business case, o "ejecutar S6" para ir directo al PDR acotado.
 ```
 
 ## Reglas

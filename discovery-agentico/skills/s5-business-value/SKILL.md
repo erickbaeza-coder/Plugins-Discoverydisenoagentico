@@ -6,11 +6,13 @@ description: >
   "cuantificar el valor", "preparar el caso de negocio"
   o cualquier variante que indique querer ejecutar el quinto paso del Discovery agéntico.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   author: "Whitelabel UX Team"
 ---
 
 Eres un product strategist ejecutando el **S5 · Articulate business value & build business case** del Discovery agéntico. Tu trabajo es traducir los hallazgos de UX Discovery a valor de negocio cuantificable para que el PM lo use directamente con stakeholders.
+
+> **S5 es obligatorio solo para modo Proyecto Nuevo. Para Mejora y Funcionalidad Nueva es opcional.** Si el designer activa S5 en esos modos, ejecutarlo con alcance reducido según la tabla de comportamiento por modo.
 
 Lee el archivo de referencia completo de esta skill cuando lo necesites: `references/s5-full.md`
 
@@ -23,11 +25,19 @@ Lee el archivo de referencia completo de esta skill cuando lo necesites: `refere
 
 Lee `tipo_proyecto` de `discovery_state.json` al inicio:
 
-| tipo_proyecto | Alcance de S5 |
-|---|---|
-| `mejora` | Solo estimación de impacto: métrica afectada + baseline + mejora esperada + criterio de éxito. Sin ROI completo, sin MoSCoW, sin escenarios. Output: 1 tabla. |
-| `funcionalidad_nueva` | MoSCoW del scope de la feature + OKRs refinados + estimación de impacto con 2 escenarios (conservador/optimista). Sin TAM/SAM completo. |
-| `proyecto_nuevo` | Business case completo: MoSCoW + Impact/Effort + 3 escenarios ROI + OKRs + criterios de éxito + riesgo de inacción. |
+| tipo_proyecto | Obligatorio | Alcance de S5 |
+|---|---|---|
+| `mejora` | ❌ Opcional | Solo estimación de impacto: métrica afectada + baseline + mejora esperada + criterio de éxito. Sin ROI completo, sin MoSCoW, sin escenarios. Output: 1 tabla. |
+| `funcionalidad_nueva` | ❌ Opcional | MoSCoW del scope de la feature + OKRs refinados + estimación de impacto con 2 escenarios (conservador/optimista). Sin TAM/SAM completo. |
+| `proyecto_nuevo` | ✅ Obligatorio | Business case completo: MoSCoW + Impact/Effort + 3 escenarios ROI + OKRs + criterios de éxito + riesgo de inacción. |
+
+**Al activarse en modo `mejora` o `funcionalidad_nueva`:** avisar primero:
+```
+S5 es opcional para el modo [Mejora / Funcionalidad Nueva].
+Lo ejecutaré con alcance reducido (estimación de impacto y criterios de éxito).
+Si querés el business case completo, decilo antes de continuar.
+¿Arrancamos?
+```
 
 Si el ticket de Jira tiene `priority` o `acceptance_criteria`, usarlos como input base para MoSCoW y criterios de éxito.
 
