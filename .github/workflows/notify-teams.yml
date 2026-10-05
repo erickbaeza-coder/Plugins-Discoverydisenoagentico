@@ -51,10 +51,13 @@ jobs:
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          TITLE="${{ github.event.release.name }}"
+          VERSION="${{ github.event.release.tag_name || inputs.tag_name }}"
           REPO="${{ github.repository }}"
           CLEAN="${VERSION#v}"
+          # Obtener título del release via API (funciona en release event y workflow_dispatch)
+          TITLE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
+            | python3 -c "import sys,json; r=json.load(sys.stdin); print(r.get('name',''))" 2>/dev/null || echo "${VERSION}")
           REPO_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
           DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/discovery-agentico-${VERSION}.plugin"
           PAYLOAD="{\"type\":\"message\",\"attachments\":[{\"contentType\":\"application/vnd.microsoft.card.adaptive\",\"content\":{\"type\":\"AdaptiveCard\",\"version\":\"1.4\",\"body\":[{\"type\":\"TextBlock\",\"text\":\"🚀 Nueva version disponible: ${VERSION}\",\"size\":\"Large\",\"weight\":\"Bolder\"},{\"type\":\"TextBlock\",\"text\":\"${TITLE}\",\"wrap\":true},{\"type\":\"TextBlock\",\"text\":\"Abre el link de GitHub y descarga el archivo .plugin desde la sección Assets.\",\"wrap\":true,\"isSubtle\":true}],\"actions\":[{\"type\":\"Action.OpenUrl\",\"title\":\"⬇️ Ir a la descarga\",\"url\":\"${REPO_URL}\"}]}}]}"
